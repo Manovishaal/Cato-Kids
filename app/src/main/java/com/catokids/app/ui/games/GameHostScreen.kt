@@ -39,6 +39,15 @@ fun GameHostScreen(
     val lesson = state.lesson
     val round = state.round
 
+    if (state.loading) {
+        CatoBackdrop {
+            Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center) {
+                LoadingBlock(label = "Getting your game ready…")
+            }
+        }
+        return
+    }
+
     if (lesson == null || round == null) {
         CatoBackdrop {
             Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center) {

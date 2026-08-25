@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.catokids.app.core.AppContainer
 import com.catokids.app.data.curriculum.CatoCurriculum
+import com.catokids.app.data.model.CUSTOM_GAME_LESSON_PREFIX
 import com.catokids.app.data.model.GameRound
 import com.catokids.app.data.model.Lesson
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +17,8 @@ enum class Feedback { NONE, CORRECT, WRONG }
 
 data class GameUiState(
     val lesson: Lesson? = null,
+    /** True only while a teacher-authored custom game is still being fetched. */
+    val loading: Boolean = false,
     val roundIndex: Int = 0,
     val correct: Int = 0,
     val wrong: Int = 0,
@@ -43,11 +46,27 @@ class GameViewModel(
     lessonId: String,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(GameUiState(lesson = CatoCurriculum.lesson(lessonId)))
+    private val isCustom = lessonId.startsWith(CUSTOM_GAME_LESSON_PREFIX)
+
+    private val _state = MutableStateFlow(
+        if (isCustom) GameUiState(loading = true) else GameUiState(lesson = CatoCurriculum.lesson(lessonId))
+    )
     val state: StateFlow<GameUiState> = _state.asStateFlow()
 
     init {
-        speakCurrentPrompt()
+        if (isCustom) {
+            viewModelScope.launch {
+                val game = container.content.game(lessonId.removePrefix(CUSTOM_GAME_LESSON_PREFIX))
+                _state.value = _state.value.copy(
+                    lesson = game?.toLesson(),
+                    loading = false,
+                    startedAtMillis = System.currentTimeMillis(),
+                )
+                speakCurrentPrompt()
+            }
+        } else {
+            speakCurrentPrompt()
+        }
     }
 
     fun speakCurrentPrompt() {

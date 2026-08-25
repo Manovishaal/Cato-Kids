@@ -18,6 +18,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -170,6 +171,105 @@ fun CatoTextField(
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(start = 14.dp, top = 4.dp),
             )
+        }
+    }
+}
+
+@Composable
+fun CatoMultilineField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    modifier: Modifier = Modifier,
+    placeholder: String? = null,
+    minLines: Int = 3,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        placeholder = placeholder?.let { { Text(it) } },
+        minLines = minLines,
+        shape = RoundedCornerShape(18.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = LocalRoleColors.current.primary,
+            focusedLabelColor = LocalRoleColors.current.primary,
+            unfocusedBorderColor = CatoPalette.Line,
+            focusedContainerColor = Color.White,
+            unfocusedContainerColor = Color.White,
+        ),
+        modifier = modifier.fillMaxWidth(),
+    )
+}
+
+/** A row of choice chips that wraps — one selection from a small set (activity type, game type, and so on). */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun <T> CatoChipRow(
+    options: List<T>,
+    selected: T,
+    label: (T) -> String,
+    emoji: ((T) -> String)? = null,
+    modifier: Modifier = Modifier,
+    onSelect: (T) -> Unit,
+) {
+    androidx.compose.foundation.layout.FlowRow(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        options.forEach { option ->
+            val isSelected = option == selected
+            Row(
+                Modifier
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(if (isSelected) LocalRoleColors.current.primary else CatoPalette.Cloud)
+                    .clickable { onSelect(option) }
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (emoji != null) {
+                    EmojiArt(emoji(option), size = 18.dp)
+                    Spacer(Modifier.width(6.dp))
+                }
+                Text(
+                    label(option),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = if (isSelected) Color.White else CatoPalette.Ink,
+                )
+            }
+        }
+    }
+}
+
+/** A labelled +/- stepper — used for "points reward", round counts and the like. */
+@Composable
+fun CatoStepper(
+    value: Int,
+    onValueChange: (Int) -> Unit,
+    label: String,
+    modifier: Modifier = Modifier,
+    step: Int = 5,
+    min: Int = 0,
+    max: Int = 500,
+) {
+    Row(
+        modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(CatoPalette.Cloud)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(label, style = MaterialTheme.typography.labelMedium, color = CatoPalette.InkSoft)
+            Text("$value", style = MaterialTheme.typography.titleMedium, color = CatoPalette.Ink)
+        }
+        IconButton(onClick = { onValueChange((value - step).coerceAtLeast(min)) }) {
+            Text("−", style = MaterialTheme.typography.headlineSmall, color = LocalRoleColors.current.primary)
+        }
+        IconButton(onClick = { onValueChange((value + step).coerceAtMost(max)) }) {
+            Text("+", style = MaterialTheme.typography.headlineSmall, color = LocalRoleColors.current.primary)
         }
     }
 }

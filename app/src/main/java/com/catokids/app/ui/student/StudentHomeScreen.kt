@@ -34,6 +34,9 @@ fun StudentHomeScreen(
     onOpenProfile: () -> Unit,
     onOpenRewards: () -> Unit,
     onChangeGrade: (Grade) -> Unit,
+    onOpenAssignments: () -> Unit,
+    onOpenCharacter: () -> Unit,
+    onOpenShop: () -> Unit,
 ) {
     val profile = state.profile
 
@@ -69,6 +72,20 @@ fun StudentHomeScreen(
             }
 
             item { Spacer(Modifier.height(6.dp)) }
+
+            // ---- quick access: homework, character, shop ----
+            item {
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    item { QuickAccessTile("📬", "My homework", CatoPalette.PeriwinkleSoft, onOpenAssignments) }
+                    item { QuickAccessTile("🧑‍🎨", "My character", CatoPalette.CoralSoft, onOpenCharacter) }
+                    item { QuickAccessTile("🛍️", "Coin shop", CatoPalette.AmberSoft, onOpenShop) }
+                }
+            }
+
+            item { Spacer(Modifier.height(18.dp)) }
 
             item {
                 PopIn(delayMillis = 40) {
@@ -191,6 +208,29 @@ fun StudentHomeScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun QuickAccessTile(emoji: String, label: String, color: Color, onClick: () -> Unit) {
+    Column(
+        Modifier
+            .width(96.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(color)
+            .clickable { onClick() }
+            .padding(vertical = 14.dp, horizontal = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        EmojiArt(emoji, size = 28.dp)
+        Spacer(Modifier.height(6.dp))
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall,
+            color = CatoPalette.Ink,
+            maxLines = 2,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+        )
     }
 }
 

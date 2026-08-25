@@ -21,6 +21,7 @@ fun TeacherHomeScreen(
     onOpenClass: (String) -> Unit,
     onOpenStudent: (String) -> Unit,
     onOpenProfile: () -> Unit,
+    onOpenCreator: () -> Unit,
 ) {
     CatoBackdrop(top = CatoPalette.PeriwinkleSoft) {
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 40.dp)) {
@@ -46,6 +47,35 @@ fun TeacherHomeScreen(
                     }
                     Avatar(state.profile?.initials ?: "T", modifier = Modifier.clickable { onOpenProfile() })
                 }
+            }
+
+            item {
+                CatoCard(
+                    Modifier
+                        .padding(horizontal = 20.dp)
+                        .fillMaxWidth(),
+                    color = CatoPalette.Periwinkle,
+                    onClick = onOpenCreator,
+                ) {
+                    Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        EmojiArt("🛠️", size = 30.dp)
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                "Create for your class",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = androidx.compose.ui.graphics.Color.White,
+                            )
+                            Text(
+                                "Homework, activities, courses & games",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.85f),
+                            )
+                        }
+                        Text("▶", color = androidx.compose.ui.graphics.Color.White)
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
             }
 
             item {

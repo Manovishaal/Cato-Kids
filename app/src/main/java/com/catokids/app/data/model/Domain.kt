@@ -67,13 +67,60 @@ data class QuizAttempt(
     val createdAtMillis: Long = 0L,
 )
 
+/** What kind of "set work" an assignment row represents. */
+enum class AssignmentType(val wire: String, val label: String, val emoji: String) {
+    LESSON  ("lesson",   "Lesson",       "📖"),
+    HOMEWORK("homework", "Homework",     "📝"),
+    ACTIVITY("activity", "Activity",     "🎨"),
+    COURSE  ("course",   "Extra course", "🌟");
+
+    companion object {
+        fun fromWire(value: String?): AssignmentType =
+            entries.firstOrNull { it.wire.equals(value, ignoreCase = true) } ?: LESSON
+    }
+}
+
 data class Assignment(
     val id: String,
     val classId: String,
-    val lessonId: String,
+    val lessonId: String?,
     val assignedBy: String?,
     val dueDate: String?,
     val note: String?,
+    val title: String = "",
+    val type: AssignmentType = AssignmentType.LESSON,
+    val instructions: String = "",
+    val pointsReward: Int = 10,
+    val requiresSubmission: Boolean = false,
+    val customGameId: String? = null,
+    val courseId: String? = null,
+    val activityId: String? = null,
+) {
+    val displayTitle: String get() = title.ifBlank { note.orEmpty().ifBlank { type.label } }
+}
+
+/** How a teacher, school or admin has marked a handed-in submission. */
+enum class SubmissionStatus(val wire: String, val label: String, val emoji: String) {
+    SUBMITTED     ("submitted",      "Submitted",        "📬"),
+    REVIEWED      ("reviewed",       "Reviewed",         "✅"),
+    NEEDS_REVISION("needs_revision", "Needs another go", "🔁");
+
+    companion object {
+        fun fromWire(value: String?): SubmissionStatus =
+            entries.firstOrNull { it.wire.equals(value, ignoreCase = true) } ?: SUBMITTED
+    }
+}
+
+data class AssignmentSubmission(
+    val id: String,
+    val assignmentId: String,
+    val studentId: String,
+    val answerText: String? = null,
+    val status: SubmissionStatus = SubmissionStatus.SUBMITTED,
+    val score: Int? = null,
+    val teacherFeedback: String? = null,
+    val reviewedBy: String? = null,
+    val submittedAtMillis: Long = 0L,
 )
 
 /** A student row as a teacher / parent / school sees it. */

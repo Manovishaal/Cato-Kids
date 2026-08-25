@@ -26,6 +26,7 @@ fun SchoolHomeScreen(
     onOpenClass: (String) -> Unit,
     onOpenStudent: (String) -> Unit,
     onOpenProfile: () -> Unit,
+    onOpenCreator: () -> Unit,
 ) {
     CatoBackdrop(top = CatoPalette.VioletSoft) {
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 40.dp)) {
@@ -46,6 +47,34 @@ fun SchoolHomeScreen(
                         )
                     }
                     Avatar(state.profile?.initials ?: "S", modifier = Modifier.clickable { onOpenProfile() })
+                }
+            }
+
+            item {
+                CatoCard(
+                    Modifier
+                        .padding(horizontal = 20.dp, vertical = 6.dp)
+                        .fillMaxWidth(),
+                    color = CatoPalette.Violet,
+                    onClick = onOpenCreator,
+                ) {
+                    Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        EmojiArt("🛠️", size = 30.dp)
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                "Create for your school",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = androidx.compose.ui.graphics.Color.White,
+                            )
+                            Text(
+                                "Homework, activities, courses & games",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.85f),
+                            )
+                        }
+                        Text("▶", color = androidx.compose.ui.graphics.Color.White)
+                    }
                 }
             }
 
@@ -129,6 +158,7 @@ fun AdminHomeScreen(
     state: DashboardUiState,
     onOpenStudent: (String) -> Unit,
     onOpenProfile: () -> Unit,
+    onOpenCreator: () -> Unit,
 ) {
     CatoBackdrop(top = CatoPalette.AmberSoft) {
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 40.dp)) {
@@ -145,6 +175,34 @@ fun AdminHomeScreen(
                         Text("Platform overview", style = MaterialTheme.typography.bodySmall, color = CatoPalette.InkSoft)
                     }
                     Avatar(state.profile?.initials ?: "A", modifier = Modifier.clickable { onOpenProfile() })
+                }
+            }
+
+            item {
+                CatoCard(
+                    Modifier
+                        .padding(horizontal = 20.dp, vertical = 6.dp)
+                        .fillMaxWidth(),
+                    color = CatoPalette.Amber,
+                    onClick = onOpenCreator,
+                ) {
+                    Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        EmojiArt("🛠️", size = 30.dp)
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                "Create for your school",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = androidx.compose.ui.graphics.Color.White,
+                            )
+                            Text(
+                                "Homework, activities, courses & games",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.85f),
+                            )
+                        }
+                        Text("▶", color = androidx.compose.ui.graphics.Color.White)
+                    }
                 }
             }
 

@@ -20,10 +20,15 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.catokids.app.core.AppContainer
 import com.catokids.app.data.curriculum.CatoCurriculum
+import com.catokids.app.data.model.AssignmentSubmission
+import com.catokids.app.data.model.CUSTOM_GAME_LESSON_PREFIX
 import com.catokids.app.data.model.Grade
 import com.catokids.app.data.model.Role
 import com.catokids.app.data.model.SubjectId
+import com.catokids.app.data.model.TapEffectType
 import com.catokids.app.ui.auth.*
+import com.catokids.app.ui.components.TapEffectOverlay
+import com.catokids.app.ui.creator.*
 import com.catokids.app.ui.dashboard.*
 import com.catokids.app.ui.games.GameHostScreen
 import com.catokids.app.ui.games.GameResultScreen
@@ -38,6 +43,11 @@ fun CatoApp(container: AppContainer) {
     val authState by authVm.state.collectAsState()
     val isDemo by container.auth.isDemo.collectAsState()
     val scope = rememberCoroutineScope()
+
+    // Hoisted so both the character/shop screens and the tap-effect overlay (drawn over
+    // every screen a student sees) share one wallet and one equipped-effect source of truth.
+    val avatarVm: AvatarViewModel = viewModel(factory = AvatarViewModel.factory(container))
+    val avatarState by avatarVm.state.collectAsState()
 
     val soundOn by container.preferences.soundOn.collectAsState(initial = true)
     LaunchedEffect(soundOn) {
@@ -154,6 +164,9 @@ fun CatoApp(container: AppContainer) {
                     onOpenProfile = { nav.navigate(Routes.PROFILE) },
                     onOpenRewards = { nav.navigate(Routes.REWARDS) },
                     onChangeGrade = { vm.setGrade(it) },
+                    onOpenAssignments = { nav.navigate(Routes.STUDENT_ASSIGNMENTS) },
+                    onOpenCharacter = { nav.navigate(Routes.CHARACTER_CREATOR) },
+                    onOpenShop = { nav.navigate(Routes.SHOP) },
                 )
             }
 
@@ -252,6 +265,7 @@ fun CatoApp(container: AppContainer) {
                     onOpenClass = { nav.navigate(Routes.classDetail(it)) },
                     onOpenStudent = { nav.navigate(Routes.studentReport(it)) },
                     onOpenProfile = { nav.navigate(Routes.PROFILE) },
+                    onOpenCreator = { nav.navigate(Routes.CREATOR_HUB) },
                 )
             }
 
@@ -302,6 +316,7 @@ fun CatoApp(container: AppContainer) {
                     onOpenClass = { nav.navigate(Routes.classDetail(it)) },
                     onOpenStudent = { nav.navigate(Routes.studentReport(it)) },
                     onOpenProfile = { nav.navigate(Routes.PROFILE) },
+                    onOpenCreator = { nav.navigate(Routes.CREATOR_HUB) },
                 )
             }
 
@@ -312,6 +327,7 @@ fun CatoApp(container: AppContainer) {
                     state = s,
                     onOpenStudent = { nav.navigate(Routes.studentReport(it)) },
                     onOpenProfile = { nav.navigate(Routes.PROFILE) },
+                    onOpenCreator = { nav.navigate(Routes.CREATOR_HUB) },
                 )
             }
 
@@ -333,6 +349,163 @@ fun CatoApp(container: AppContainer) {
                     onBack = { nav.popBackStack() },
                 )
             }
+
+            // ---------------- creator tools (teacher / school / admin only) ----------------
+
+            composable(Routes.CREATOR_HUB) {
+                val vm: CreatorViewModel = viewModel(factory = CreatorViewModel.factory(container))
+                val s by vm.state.collectAsState()
+                LaunchedEffect(Unit) { vm.refresh() }
+                CreatorHubScreen(
+                    state = s,
+                    onCreateHomework = { nav.navigate(Routes.CREATOR_HOMEWORK) },
+                    onCreateActivity = { nav.navigate(Routes.CREATOR_ACTIVITY) },
+                    onCreateCourse = { nav.navigate(Routes.CREATOR_COURSE) },
+                    onCreateGame = { nav.navigate(Routes.CREATOR_GAME) },
+                    onOpenSubmissions = { nav.navigate(Routes.creatorSubmissions(it)) },
+                    onAssign = { assignment -> scope.launch { vm.assign(assignment) } },
+                    onDeleteGame = { vm.deleteGame(it) },
+                    onDeleteCourse = { vm.deleteCourse(it) },
+                    onDeleteActivity = { vm.deleteActivity(it) },
+                    onDeleteAssignment = { vm.deleteAssignment(it) },
+                    onTogglePublishGame = { vm.togglePublishGame(it) },
+                    onTogglePublishCourse = { vm.togglePublishCourse(it) },
+                    onTogglePublishActivity = { vm.togglePublishActivity(it) },
+                    onBack = { nav.popBackStack() },
+                )
+            }
+
+            composable(Routes.CREATOR_HOMEWORK) {
+                val vm: CreatorViewModel = viewModel(factory = CreatorViewModel.factory(container))
+                val s by vm.state.collectAsState()
+                HomeworkComposerScreen(
+                    classes = s.classes,
+                    games = s.games,
+                    profileId = s.profile?.id,
+                    onSave = { assignment -> scope.launch { vm.assign(assignment); nav.popBackStack() } },
+                    onBack = { nav.popBackStack() },
+                )
+            }
+
+            composable(Routes.CREATOR_ACTIVITY) {
+                val vm: CreatorViewModel = viewModel(factory = CreatorViewModel.factory(container))
+                val s by vm.state.collectAsState()
+                ActivityComposerScreen(
+                    profileId = s.profile?.id,
+                    schoolId = s.profile?.schoolId,
+                    onSave = { activity -> scope.launch { vm.saveActivity(activity); nav.popBackStack() } },
+                    onBack = { nav.popBackStack() },
+                )
+            }
+
+            composable(Routes.CREATOR_COURSE) {
+                val vm: CreatorViewModel = viewModel(factory = CreatorViewModel.factory(container))
+                val s by vm.state.collectAsState()
+                ExtraCourseComposerScreen(
+                    profileId = s.profile?.id,
+                    schoolId = s.profile?.schoolId,
+                    onSave = { course -> scope.launch { vm.saveCourse(course); nav.popBackStack() } },
+                    onBack = { nav.popBackStack() },
+                )
+            }
+
+            composable(Routes.CREATOR_GAME) {
+                val vm: CreatorViewModel = viewModel(factory = CreatorViewModel.factory(container))
+                val s by vm.state.collectAsState()
+                GameBuilderScreen(
+                    profileId = s.profile?.id,
+                    schoolId = s.profile?.schoolId,
+                    onSave = { game -> scope.launch { vm.saveGame(game); nav.popBackStack() } },
+                    onBack = { nav.popBackStack() },
+                )
+            }
+
+            composable(
+                Routes.CREATOR_SUBMISSIONS,
+                arguments = listOf(navArgument("assignmentId") { type = NavType.StringType }),
+            ) { entry ->
+                val vm: CreatorViewModel = viewModel(factory = CreatorViewModel.factory(container))
+                val s by vm.state.collectAsState()
+                val assignmentId = entry.arguments?.getString("assignmentId").orEmpty()
+                val assignment = s.assignedWork.firstOrNull { it.id == assignmentId }
+                var submissions by remember { mutableStateOf<List<AssignmentSubmission>>(emptyList()) }
+                var loadingSubs by remember { mutableStateOf(true) }
+                LaunchedEffect(assignmentId, s.loading) {
+                    if (!s.loading) {
+                        loadingSubs = true
+                        submissions = vm.submissionsFor(assignmentId)
+                        loadingSubs = false
+                    }
+                }
+                SubmissionsReviewScreen(
+                    assignmentTitle = assignment?.displayTitle ?: "Submissions",
+                    submissions = submissions,
+                    loading = loadingSubs,
+                    onReview = { submission, status, score, feedback ->
+                        scope.launch {
+                            vm.review(submission.id, status, score, feedback)
+                            submissions = vm.submissionsFor(assignmentId)
+                        }
+                    },
+                    onBack = { nav.popBackStack() },
+                )
+            }
+
+            // ---------------- student: assignments, character, shop ----------------
+
+            composable(Routes.STUDENT_ASSIGNMENTS) {
+                val vm: AssignmentsViewModel = viewModel(factory = AssignmentsViewModel.factory(container))
+                val s by vm.state.collectAsState()
+                LaunchedEffect(Unit) { vm.refresh() }
+                AssignmentsScreen(
+                    state = s,
+                    onOpen = { nav.navigate(Routes.assignmentDetail(it)) },
+                    onBack = { nav.popBackStack() },
+                )
+            }
+
+            composable(
+                Routes.ASSIGNMENT_DETAIL,
+                arguments = listOf(navArgument("assignmentId") { type = NavType.StringType }),
+            ) { entry ->
+                val vm: AssignmentsViewModel = viewModel(factory = AssignmentsViewModel.factory(container))
+                val s by vm.state.collectAsState()
+                val assignmentId = entry.arguments?.getString("assignmentId").orEmpty()
+                val item = vm.find(assignmentId)
+                AssignmentDetailScreen(
+                    item = item,
+                    onPlayGame = { gameId -> nav.navigate(Routes.lesson("$CUSTOM_GAME_LESSON_PREFIX$gameId")) },
+                    onOpenLesson = { nav.navigate(Routes.lesson(it)) },
+                    onSubmit = { answer -> scope.launch { vm.submit(assignmentId, answer) } },
+                    onBack = { nav.popBackStack() },
+                )
+            }
+
+            composable(Routes.CHARACTER_CREATOR) {
+                CharacterCreatorScreen(
+                    state = avatarState,
+                    onEquip = { avatarVm.equip(it) },
+                    onUnequip = { avatarVm.unequip(it) },
+                    onOpenShop = { nav.navigate(Routes.SHOP) },
+                    onBack = { nav.popBackStack() },
+                )
+            }
+
+            composable(Routes.SHOP) {
+                ShopScreen(
+                    state = avatarState,
+                    onBuy = { avatarVm.purchase(it) },
+                    onMessageShown = { avatarVm.clearMessage() },
+                    onBack = { nav.popBackStack() },
+                )
+            }
+        }
+
+        if (authState.profile?.role == Role.STUDENT) {
+            TapEffectOverlay(
+                effectType = TapEffectType.fromKey(avatarState.config.tapEffect),
+                modifier = Modifier.fillMaxSize(),
+            )
         }
     }
 }

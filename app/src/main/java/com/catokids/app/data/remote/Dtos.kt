@@ -144,3 +144,229 @@ data class LessonSeedDto(
     @SerialName("game_type") val gameType: String,
     val content: LessonContent = LessonContent(),
 )
+
+// ---------------------------------------------------------------- creator tools
+
+@Serializable
+data class AssignmentDto(
+    val id: String? = null,
+    @SerialName("class_id") val classId: String,
+    @SerialName("lesson_id") val lessonId: String? = null,
+    @SerialName("assigned_by") val assignedBy: String? = null,
+    @SerialName("due_date") val dueDate: String? = null,
+    val note: String? = null,
+    val title: String? = null,
+    val type: String = "lesson",
+    val instructions: String? = null,
+    @SerialName("points_reward") val pointsReward: Int = 10,
+    @SerialName("requires_submission") val requiresSubmission: Boolean = false,
+    @SerialName("custom_game_id") val customGameId: String? = null,
+    @SerialName("course_id") val courseId: String? = null,
+    @SerialName("activity_id") val activityId: String? = null,
+) {
+    fun toDomain() = Assignment(
+        id = id.orEmpty(),
+        classId = classId,
+        lessonId = lessonId,
+        assignedBy = assignedBy,
+        dueDate = dueDate,
+        note = note,
+        title = title.orEmpty(),
+        type = AssignmentType.fromWire(type),
+        instructions = instructions.orEmpty(),
+        pointsReward = pointsReward,
+        requiresSubmission = requiresSubmission,
+        customGameId = customGameId,
+        courseId = courseId,
+        activityId = activityId,
+    )
+
+    companion object {
+        fun from(a: Assignment) = AssignmentDto(
+            id = a.id.ifBlank { null },
+            classId = a.classId,
+            lessonId = a.lessonId,
+            assignedBy = a.assignedBy,
+            dueDate = a.dueDate,
+            note = a.note,
+            title = a.title.ifBlank { null },
+            type = a.type.wire,
+            instructions = a.instructions.ifBlank { null },
+            pointsReward = a.pointsReward,
+            requiresSubmission = a.requiresSubmission,
+            customGameId = a.customGameId,
+            courseId = a.courseId,
+            activityId = a.activityId,
+        )
+    }
+}
+
+@Serializable
+data class AssignmentSubmissionDto(
+    val id: String? = null,
+    @SerialName("assignment_id") val assignmentId: String,
+    @SerialName("student_id") val studentId: String,
+    @SerialName("answer_text") val answerText: String? = null,
+    val status: String = "submitted",
+    val score: Int? = null,
+    @SerialName("teacher_feedback") val teacherFeedback: String? = null,
+    @SerialName("reviewed_by") val reviewedBy: String? = null,
+) {
+    fun toDomain() = AssignmentSubmission(
+        id = id.orEmpty(),
+        assignmentId = assignmentId,
+        studentId = studentId,
+        answerText = answerText,
+        status = SubmissionStatus.fromWire(status),
+        score = score,
+        teacherFeedback = teacherFeedback,
+        reviewedBy = reviewedBy,
+    )
+}
+
+/** Only the fields a teacher is allowed to change once a child has handed work in. */
+@Serializable
+data class SubmissionReviewDto(
+    val status: String,
+    val score: Int? = null,
+    @SerialName("teacher_feedback") val teacherFeedback: String? = null,
+    @SerialName("reviewed_by") val reviewedBy: String? = null,
+)
+
+@Serializable
+data class CustomGameDto(
+    val id: String? = null,
+    @SerialName("created_by") val createdBy: String? = null,
+    @SerialName("school_id") val schoolId: String? = null,
+    val title: String,
+    val description: String? = null,
+    @SerialName("subject_id") val subjectId: String? = null,
+    val grade: String? = null,
+    @SerialName("game_type") val gameType: String,
+    val content: LessonContent = LessonContent(),
+    @SerialName("is_published") val isPublished: Boolean = true,
+) {
+    fun toDomain() = CustomGame(
+        id = id.orEmpty(),
+        createdBy = createdBy,
+        schoolId = schoolId,
+        title = title,
+        description = description.orEmpty(),
+        subject = subjectId?.let { SubjectId.fromWire(it) },
+        grade = Grade.fromWire(grade),
+        gameType = GameType.fromWire(gameType),
+        content = content,
+        published = isPublished,
+    )
+
+    companion object {
+        fun from(g: CustomGame) = CustomGameDto(
+            id = g.id.ifBlank { null },
+            createdBy = g.createdBy,
+            schoolId = g.schoolId,
+            title = g.title,
+            description = g.description.ifBlank { null },
+            subjectId = g.subject?.wire,
+            grade = g.grade?.wire,
+            gameType = g.gameType.wire,
+            content = g.content,
+            isPublished = g.published,
+        )
+    }
+}
+
+@Serializable
+data class ExtraCourseDto(
+    val id: String? = null,
+    @SerialName("created_by") val createdBy: String? = null,
+    @SerialName("school_id") val schoolId: String? = null,
+    val title: String,
+    val description: String? = null,
+    @SerialName("cover_emoji") val coverEmoji: String = "📘",
+    @SerialName("subject_id") val subjectId: String? = null,
+    val grade: String? = null,
+    @SerialName("lesson_ids") val lessonIds: List<String> = emptyList(),
+    @SerialName("is_published") val isPublished: Boolean = true,
+) {
+    fun toDomain() = ExtraCourse(
+        id = id.orEmpty(),
+        createdBy = createdBy,
+        schoolId = schoolId,
+        title = title,
+        description = description.orEmpty(),
+        coverEmoji = coverEmoji,
+        subject = subjectId?.let { SubjectId.fromWire(it) },
+        grade = Grade.fromWire(grade),
+        lessonIds = lessonIds,
+        published = isPublished,
+    )
+
+    companion object {
+        fun from(c: ExtraCourse) = ExtraCourseDto(
+            id = c.id.ifBlank { null },
+            createdBy = c.createdBy,
+            schoolId = c.schoolId,
+            title = c.title,
+            description = c.description.ifBlank { null },
+            coverEmoji = c.coverEmoji,
+            subjectId = c.subject?.wire,
+            grade = c.grade?.wire,
+            lessonIds = c.lessonIds,
+            isPublished = c.published,
+        )
+    }
+}
+
+@Serializable
+data class ActivityDto(
+    val id: String? = null,
+    @SerialName("created_by") val createdBy: String? = null,
+    @SerialName("school_id") val schoolId: String? = null,
+    val title: String,
+    val instructions: String = "",
+    @SerialName("activity_type") val activityType: String = "creative",
+    val grade: String? = null,
+    @SerialName("points_reward") val pointsReward: Int = 10,
+    @SerialName("is_published") val isPublished: Boolean = true,
+) {
+    fun toDomain() = Activity(
+        id = id.orEmpty(),
+        createdBy = createdBy,
+        schoolId = schoolId,
+        title = title,
+        instructions = instructions,
+        activityType = ActivityType.fromWire(activityType),
+        grade = Grade.fromWire(grade),
+        pointsReward = pointsReward,
+        published = isPublished,
+    )
+
+    companion object {
+        fun from(a: Activity) = ActivityDto(
+            id = a.id.ifBlank { null },
+            createdBy = a.createdBy,
+            schoolId = a.schoolId,
+            title = a.title,
+            instructions = a.instructions,
+            activityType = a.activityType.wire,
+            grade = a.grade?.wire,
+            pointsReward = a.pointsReward,
+            isPublished = a.published,
+        )
+    }
+}
+
+// ---------------------------------------------------------------- avatar & shop
+
+@Serializable
+data class StudentAvatarDto(
+    @SerialName("student_id") val studentId: String,
+    val config: AvatarConfig = AvatarConfig(),
+)
+
+@Serializable
+data class StudentInventoryDto(
+    val id: String? = null,
+    @SerialName("student_id") val studentId: String,
+    @SerialName("item_key") val itemKey: String,
+)

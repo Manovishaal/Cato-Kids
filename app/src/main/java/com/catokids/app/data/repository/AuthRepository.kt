@@ -182,6 +182,22 @@ class AuthRepository(private val prefs: AppPreferences) {
         }
     }
 
+    /** For the coin shop: deducts if (and only if) the child can afford it. Returns whether it happened. */
+    suspend fun spendCoins(amount: Int): Boolean {
+        val current = _profile.value ?: return false
+        if (amount <= 0) return true
+        if (current.coins < amount) return false
+        val updated = current.copy(coins = current.coins - amount)
+        _profile.value = updated
+        if (_isDemo.value || !isConfigured) return true
+        runCatching {
+            SupabaseProvider.client.from("profiles").update(
+                ProfileUpdateDto(coins = updated.coins)
+            ) { filter { eq("id", current.id) } }
+        }
+        return true
+    }
+
     private suspend fun fetchProfile(userId: String): Profile? = runCatching {
         SupabaseProvider.client.from("profiles")
             .select { filter { eq("id", userId) } }

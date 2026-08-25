@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.catokids.app.data.model.AvatarConfig
 import com.catokids.app.data.model.Grade
 import com.catokids.app.data.model.LessonProgress
 import com.catokids.app.data.model.Role
@@ -55,6 +56,8 @@ class AppPreferences(private val context: Context) {
         val DEMO_GRADE    = stringPreferencesKey("demo_grade")
         val SELECTED_CHILD = stringPreferencesKey("selected_child")
         fun progress(userId: String) = stringPreferencesKey("progress_$userId")
+        fun avatar(userId: String) = stringPreferencesKey("avatar_$userId")
+        fun ownedItems(userId: String) = stringPreferencesKey("owned_items_$userId")
     }
 
     val soundOn: Flow<Boolean> = context.dataStore.data.map { it[Keys.SOUND] ?: true }
@@ -137,4 +140,26 @@ class AppPreferences(private val context: Context) {
     private fun LessonProgress.toStored() = StoredProgress(
         lessonId, stars, bestScore, attempts, secondsSpent, completed, lastPlayedAtMillis,
     )
+
+    // ---------- character creator: avatar + owned shop items ----------
+
+    suspend fun avatarConfig(userId: String): AvatarConfig? {
+        val raw = context.dataStore.data.first()[Keys.avatar(userId)] ?: return null
+        return runCatching { json.decodeFromString(AvatarConfig.serializer(), raw) }.getOrNull()
+    }
+
+    suspend fun saveAvatarConfig(userId: String, config: AvatarConfig) {
+        context.dataStore.edit { it[Keys.avatar(userId)] = json.encodeToString(AvatarConfig.serializer(), config) }
+    }
+
+    // Catalogue item keys are plain identifiers ("cap", "crown", …) with no commas in
+    // them, so a delimited string is enough here — no need for a list serializer.
+    suspend fun ownedItemKeys(userId: String): Set<String> {
+        val raw = context.dataStore.data.first()[Keys.ownedItems(userId)] ?: return emptySet()
+        return raw.split(",").map { it.trim() }.filter { it.isNotBlank() }.toSet()
+    }
+
+    suspend fun saveOwnedItemKeys(userId: String, keys: Set<String>) {
+        context.dataStore.edit { it[Keys.ownedItems(userId)] = keys.joinToString(",") }
+    }
 }
