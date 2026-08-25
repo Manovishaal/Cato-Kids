@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.CatoKids" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/cato_splash</item>
+        <item name="android:navigationBarColor">@color/white</item>
+        <item name="android:windowBackground">@color/cato_splash</item>
+    </style>
+</resources>

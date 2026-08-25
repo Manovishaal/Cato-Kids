@@ -1,0 +1,24 @@
+# Normalise to LF in the repository, and let Git hand each platform what it needs
+# on checkout. Without this, Windows checkouts decide line endings per-file and the
+# repo drifts.
+* text=auto eol=lf
+
+# gradlew is a shell script run by Linux CI. If it ever lands with CRLF the runner
+# fails with "bad interpreter" — pin it.
+gradlew        text eol=lf
+*.sh           text eol=lf
+
+# Windows batch files are the mirror case: they need CRLF.
+*.bat          text eol=crlf
+*.cmd          text eol=crlf
+
+# Never touch binaries.
+*.png          binary
+*.webp         binary
+*.jpg          binary
+*.jpeg         binary
+*.jar          binary
+*.keystore     binary
+*.jks          binary
+*.apk          binary
+*.aab          binary
