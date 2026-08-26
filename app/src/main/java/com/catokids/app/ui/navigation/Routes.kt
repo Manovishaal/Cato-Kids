@@ -30,6 +30,7 @@ object Routes {
     const val CREATOR_ACTIVITY = "creator/activity"
     const val CREATOR_COURSE   = "creator/course"
     const val CREATOR_GAME     = "creator/game"
+    const val CREATOR_RESOURCES = "creator/resources"
     const val CREATOR_SUBMISSIONS = "creator/submissions/{assignmentId}"
 
     // ---------------- student: assignments, character, shop ----------------

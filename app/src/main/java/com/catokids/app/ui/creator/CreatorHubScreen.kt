@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import com.catokids.app.data.model.*
 import com.catokids.app.ui.components.*
 import com.catokids.app.ui.theme.CatoPalette
-import java.util.Calendar
 
 @Composable
 fun CreatorHubScreen(
@@ -29,6 +27,7 @@ fun CreatorHubScreen(
     onCreateActivity: () -> Unit,
     onCreateCourse: () -> Unit,
     onCreateGame: () -> Unit,
+    onOpenResources: () -> Unit,
     onOpenSubmissions: (String) -> Unit,
     onAssign: (Assignment) -> Unit,
     onDeleteGame: (String) -> Unit,
@@ -61,6 +60,33 @@ fun CreatorHubScreen(
             }
 
             item { Spacer(Modifier.height(8.dp)) }
+            item {
+                CatoCard(
+                    Modifier.padding(horizontal = 20.dp).fillMaxWidth(),
+                    color = CatoPalette.Periwinkle,
+                    onClick = onOpenResources,
+                ) {
+                    Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        EmojiArt("📘", size = 30.dp)
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                "Teacher training library",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = Color.White,
+                            )
+                            Text(
+                                "Content & tips for 16 skill areas, per class · 80 ready-to-assign activities",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.White.copy(alpha = 0.85f),
+                            )
+                        }
+                        Text("▶", color = Color.White)
+                    }
+                }
+            }
+
+            item { Spacer(Modifier.height(14.dp)) }
             item {
                 Column(Modifier.padding(horizontal = 20.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
@@ -161,121 +187,6 @@ fun CreatorHubScreen(
             onConfirm = { assignment -> onAssign(assignment); assignTarget = null },
             onDismiss = { assignTarget = null },
         )
-    }
-}
-
-private data class AssignRequest(
-    val title: String,
-    val type: AssignmentType,
-    val customGameId: String? = null,
-    val courseId: String? = null,
-    val activityId: String? = null,
-    val pointsReward: Int = 10,
-    val instructions: String = "",
-)
-
-@Composable
-private fun AssignToClassDialog(
-    request: AssignRequest,
-    classes: List<ClassRoom>,
-    profileId: String?,
-    onConfirm: (Assignment) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    var selectedClass by remember { mutableStateOf(classes.firstOrNull()?.id) }
-    var dueOffset by remember { mutableStateOf<Int?>(7) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Assign \"${request.title}\"") },
-        text = {
-            Column {
-                Text("Class", style = MaterialTheme.typography.labelLarge, color = CatoPalette.InkSoft)
-                Spacer(Modifier.height(6.dp))
-                if (classes.isEmpty()) {
-                    Text("No classes yet.", style = MaterialTheme.typography.bodySmall, color = CatoPalette.InkSoft)
-                }
-                classes.forEach { c ->
-                    PickRow(text = "${c.name} · ${c.grade.label}", selected = selectedClass == c.id) { selectedClass = c.id }
-                }
-                Spacer(Modifier.height(14.dp))
-                Text("Due", style = MaterialTheme.typography.labelLarge, color = CatoPalette.InkSoft)
-                Spacer(Modifier.height(6.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("No date" to null, "3 days" to 3, "1 week" to 7, "2 weeks" to 14).forEach { (label, days) ->
-                        DueChip(label, selected = dueOffset == days) { dueOffset = days }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            CatoButton(
-                text = "Assign",
-                enabled = selectedClass != null,
-                onClick = {
-                    val classId = selectedClass ?: return@CatoButton
-                    onConfirm(
-                        Assignment(
-                            id = "",
-                            classId = classId,
-                            lessonId = null,
-                            assignedBy = profileId,
-                            dueDate = quickDueDate(dueOffset),
-                            note = null,
-                            title = request.title,
-                            type = request.type,
-                            instructions = request.instructions,
-                            pointsReward = request.pointsReward,
-                            requiresSubmission = request.type == AssignmentType.ACTIVITY,
-                            customGameId = request.customGameId,
-                            courseId = request.courseId,
-                            activityId = request.activityId,
-                        )
-                    )
-                },
-            )
-        },
-        dismissButton = { CatoOutlineButton(text = "Cancel", onClick = onDismiss) },
-    )
-}
-
-fun quickDueDate(daysFromNow: Int?): String? {
-    if (daysFromNow == null) return null
-    val cal = Calendar.getInstance()
-    cal.add(Calendar.DAY_OF_MONTH, daysFromNow)
-    return String.format(
-        "%04d-%02d-%02d",
-        cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH),
-    )
-}
-
-@Composable
-private fun PickRow(text: String, selected: Boolean, onClick: () -> Unit) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .clickable { onClick() }
-            .background(if (selected) CatoPalette.PeriwinkleSoft else Color(0x00000000))
-            .padding(horizontal = 10.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(if (selected) "●" else "○", color = CatoPalette.PeriwinkleDeep)
-        Spacer(Modifier.width(8.dp))
-        Text(text, style = MaterialTheme.typography.bodyMedium, color = CatoPalette.Ink)
-    }
-}
-
-@Composable
-private fun DueChip(label: String, selected: Boolean, onClick: () -> Unit) {
-    Box(
-        Modifier
-            .clip(RoundedCornerShape(14.dp))
-            .background(if (selected) CatoPalette.Periwinkle else CatoPalette.Cloud)
-            .clickable { onClick() }
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-    ) {
-        Text(label, style = MaterialTheme.typography.labelSmall, color = if (selected) Color.White else CatoPalette.Ink)
     }
 }
 

@@ -362,6 +362,7 @@ fun CatoApp(container: AppContainer) {
                     onCreateActivity = { nav.navigate(Routes.CREATOR_ACTIVITY) },
                     onCreateCourse = { nav.navigate(Routes.CREATOR_COURSE) },
                     onCreateGame = { nav.navigate(Routes.CREATOR_GAME) },
+                    onOpenResources = { nav.navigate(Routes.CREATOR_RESOURCES) },
                     onOpenSubmissions = { nav.navigate(Routes.creatorSubmissions(it)) },
                     onAssign = { assignment -> scope.launch { vm.assign(assignment) } },
                     onDeleteGame = { vm.deleteGame(it) },
@@ -416,6 +417,17 @@ fun CatoApp(container: AppContainer) {
                     profileId = s.profile?.id,
                     schoolId = s.profile?.schoolId,
                     onSave = { game -> scope.launch { vm.saveGame(game); nav.popBackStack() } },
+                    onBack = { nav.popBackStack() },
+                )
+            }
+
+            composable(Routes.CREATOR_RESOURCES) {
+                val vm: CreatorViewModel = viewModel(factory = CreatorViewModel.factory(container))
+                val s by vm.state.collectAsState()
+                LaunchedEffect(Unit) { vm.refresh() }
+                TeacherResourcesScreen(
+                    state = s,
+                    onAssign = { assignment -> scope.launch { vm.assign(assignment) } },
                     onBack = { nav.popBackStack() },
                 )
             }
