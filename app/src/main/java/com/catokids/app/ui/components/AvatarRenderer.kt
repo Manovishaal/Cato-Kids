@@ -192,40 +192,59 @@ fun CharacterAvatar(config: AvatarConfig, modifier: Modifier = Modifier) {
 
 // ---------------------------------------------------------------- tap effects
 
-private data class TapBurst(val id: Long, val position: Offset)
+/** Not private: [tapEffectDetector] and [TapEffectBursts] live on separate nodes (see below)
+ *  and both need to share this type, so the caller (CatoApp) can hoist the burst list itself. */
+data class TapBurst(val id: Long, val position: Offset)
 
 /**
- * A transparent, non-blocking layer: it listens for taps (after everything underneath
- * has already handled them, via [PointerEventPass.Final], and never calls `consume()`)
- * and fires a small particle burst at the tap point. Wrap the whole app content in this
- * and it never interferes with a single button click.
+ * Attach this to the OUTERMOST `Box` that already wraps *all* interactive content — never to
+ * a separate overlay `Box` stacked on top of it. It listens on [PointerEventPass.Initial],
+ * the pass that fires *before* any descendant (every button, every clickable in the app) gets
+ * to process the event, and it never calls `consume()`. Because it observes strictly before
+ * descendants and never consumes, every button underneath still receives the event completely
+ * untouched on its own (later) pass — this cannot eat a tap no matter how it's positioned.
+ *
+ * This used to be a same-named sibling composable with its own full-screen `Box` stacked on
+ * top of the nav content, listening on [PointerEventPass.Final] instead. That shape depends on
+ * how overlapping sibling subtrees get hit-tested to stay safe; this one doesn't rely on that
+ * at all — it's attached to the actual ancestor of every button, so the pass ordering that
+ * guarantees descendants see an untouched event is Compose's documented ancestor/descendant
+ * contract, not an assumption about sibling behavior. Draw the bursts separately with
+ * [TapEffectBursts], which has no pointer input of its own and so can never intercept a touch.
+ */
+fun Modifier.tapEffectDetector(effectType: TapEffectType, onTap: (Offset) -> Unit): Modifier {
+    if (effectType == TapEffectType.NONE) return this
+    return this.pointerInput(effectType) {
+        awaitPointerEventScope {
+            while (true) {
+                val event = awaitPointerEvent(PointerEventPass.Initial)
+                val down = event.changes.firstOrNull { it.changedToDown() }
+                if (down != null) onTap(down.position)
+            }
+        }
+    }
+}
+
+/**
+ * Pure drawing layer for the bursts [tapEffectDetector] reports. Deliberately carries no
+ * `pointerInput` of its own — it only draws — so stacking it on top of everything else can
+ * never intercept a touch, regardless of z-order or hit-testing quirks.
  */
 @Composable
-fun TapEffectOverlay(effectType: TapEffectType, modifier: Modifier = Modifier) {
+fun TapEffectBursts(
+    bursts: List<TapBurst>,
+    effectType: TapEffectType,
+    onBurstDone: (Long) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     if (effectType == TapEffectType.NONE) return
-    var bursts by remember { mutableStateOf(listOf<TapBurst>()) }
-    var counter by remember { mutableStateOf(0L) }
-
-    Box(
-        modifier.pointerInput(effectType) {
-            awaitPointerEventScope {
-                while (true) {
-                    val event = awaitPointerEvent(PointerEventPass.Final)
-                    val down = event.changes.firstOrNull { it.changedToDown() }
-                    if (down != null) {
-                        counter += 1
-                        bursts = (bursts + TapBurst(counter, down.position)).takeLast(6)
-                    }
-                }
-            }
-        },
-    ) {
+    Box(modifier) {
         bursts.forEach { burst ->
             androidx.compose.runtime.key(burst.id) {
                 TapBurstEffect(
                     position = burst.position,
                     effectType = effectType,
-                    onDone = { bursts = bursts.filterNot { it.id == burst.id } },
+                    onDone = { onBurstDone(burst.id) },
                 )
             }
         }

@@ -37,6 +37,7 @@ fun StudentHomeScreen(
     onOpenAssignments: () -> Unit,
     onOpenCharacter: () -> Unit,
     onOpenShop: () -> Unit,
+    onOpenToyBox: () -> Unit,
 ) {
     val profile = state.profile
 
@@ -82,6 +83,7 @@ fun StudentHomeScreen(
                     item { QuickAccessTile("📬", "My homework", CatoPalette.PeriwinkleSoft, onOpenAssignments) }
                     item { QuickAccessTile("🧑‍🎨", "My character", CatoPalette.CoralSoft, onOpenCharacter) }
                     item { QuickAccessTile("🛍️", "Coin shop", CatoPalette.AmberSoft, onOpenShop) }
+                    item { QuickAccessTile("🧸", "3D Toy Box", CatoPalette.TealSoft, onOpenToyBox) }
                 }
             }
 

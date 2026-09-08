@@ -30,6 +30,7 @@ object Routes {
     const val CREATOR_ACTIVITY = "creator/activity"
     const val CREATOR_COURSE   = "creator/course"
     const val CREATOR_GAME     = "creator/game"
+    const val CREATOR_RESOURCES = "creator/resources"
     const val CREATOR_SUBMISSIONS = "creator/submissions/{assignmentId}"
 
     // ---------------- student: assignments, character, shop ----------------
@@ -37,6 +38,7 @@ object Routes {
     const val ASSIGNMENT_DETAIL   = "student/assignment/{assignmentId}"
     const val CHARACTER_CREATOR   = "student/character"
     const val SHOP                = "student/shop"
+    const val TOY_BOX             = "student/toybox"
 
     fun login(role: String) = "login/$role"
     fun register(role: String) = "register/$role"

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -27,12 +28,16 @@ import com.catokids.app.data.model.Role
 import com.catokids.app.data.model.SubjectId
 import com.catokids.app.data.model.TapEffectType
 import com.catokids.app.ui.auth.*
-import com.catokids.app.ui.components.TapEffectOverlay
+import com.catokids.app.ui.components.TapBurst
+import com.catokids.app.ui.components.TapEffectBursts
+import com.catokids.app.ui.components.tapEffectDetector
 import com.catokids.app.ui.creator.*
 import com.catokids.app.ui.dashboard.*
 import com.catokids.app.ui.games.GameHostScreen
 import com.catokids.app.ui.games.GameResultScreen
 import com.catokids.app.ui.games.GameViewModel
+import com.catokids.app.ui.games.ToyBoxGameScreen
+import com.catokids.app.ui.games.ToyBoxViewModel
 import com.catokids.app.ui.student.*
 import kotlinx.coroutines.launch
 
@@ -76,7 +81,29 @@ fun CatoApp(container: AppContainer) {
         }
     }
 
-    Box(Modifier.fillMaxSize()) {
+    // Hoisted here (not inside the tap-effect components themselves) so the raw touch
+    // detector and the burst drawing can live on two different nodes — see the doc
+    // comment on Modifier.tapEffectDetector for why that split matters for touch safety.
+    var tapBursts by remember { mutableStateOf(listOf<TapBurst>()) }
+    var tapBurstCounter by remember { mutableStateOf(0L) }
+    val tapEffectType = if (authState.profile?.role == Role.STUDENT) {
+        TapEffectType.fromKey(avatarState.config.tapEffect)
+    } else {
+        TapEffectType.NONE
+    }
+
+    Box(
+        Modifier
+            .fillMaxSize()
+            // Attached to this Box, the ancestor of every screen and every button in the
+            // app — never to a separate overlay on top of it. See the doc comment on
+            // tapEffectDetector: because it only observes (Initial pass, never consumes),
+            // every button underneath is guaranteed to see a completely untouched event.
+            .tapEffectDetector(tapEffectType) { position ->
+                tapBurstCounter += 1
+                tapBursts = (tapBursts + TapBurst(tapBurstCounter, position)).takeLast(6)
+            },
+    ) {
         NavHost(
             navController = nav,
             startDestination = Routes.SPLASH,
@@ -167,6 +194,7 @@ fun CatoApp(container: AppContainer) {
                     onOpenAssignments = { nav.navigate(Routes.STUDENT_ASSIGNMENTS) },
                     onOpenCharacter = { nav.navigate(Routes.CHARACTER_CREATOR) },
                     onOpenShop = { nav.navigate(Routes.SHOP) },
+                    onOpenToyBox = { nav.navigate(Routes.TOY_BOX) },
                 )
             }
 
@@ -362,6 +390,7 @@ fun CatoApp(container: AppContainer) {
                     onCreateActivity = { nav.navigate(Routes.CREATOR_ACTIVITY) },
                     onCreateCourse = { nav.navigate(Routes.CREATOR_COURSE) },
                     onCreateGame = { nav.navigate(Routes.CREATOR_GAME) },
+                    onOpenResources = { nav.navigate(Routes.CREATOR_RESOURCES) },
                     onOpenSubmissions = { nav.navigate(Routes.creatorSubmissions(it)) },
                     onAssign = { assignment -> scope.launch { vm.assign(assignment) } },
                     onDeleteGame = { vm.deleteGame(it) },
@@ -416,6 +445,17 @@ fun CatoApp(container: AppContainer) {
                     profileId = s.profile?.id,
                     schoolId = s.profile?.schoolId,
                     onSave = { game -> scope.launch { vm.saveGame(game); nav.popBackStack() } },
+                    onBack = { nav.popBackStack() },
+                )
+            }
+
+            composable(Routes.CREATOR_RESOURCES) {
+                val vm: CreatorViewModel = viewModel(factory = CreatorViewModel.factory(container))
+                val s by vm.state.collectAsState()
+                LaunchedEffect(Unit) { vm.refresh() }
+                TeacherResourcesScreen(
+                    state = s,
+                    onAssign = { assignment -> scope.launch { vm.assign(assignment) } },
                     onBack = { nav.popBackStack() },
                 )
             }
@@ -499,14 +539,32 @@ fun CatoApp(container: AppContainer) {
                     onBack = { nav.popBackStack() },
                 )
             }
+
+            composable(Routes.TOY_BOX) {
+                val vm: ToyBoxViewModel = viewModel(factory = ToyBoxViewModel.factory(container))
+                val s by vm.state.collectAsState()
+                ToyBoxGameScreen(
+                    state = s,
+                    onStart = vm::start,
+                    onChoose = vm::choose,
+                    onWrongFeedbackShown = vm::clearWrongFeedback,
+                    onNextRound = vm::nextRound,
+                    onOpenChest = vm::openChest,
+                    onLaunchRocket = vm::launchRocket,
+                    onPlayAgain = vm::playAgain,
+                    onExit = { nav.popBackStack() },
+                )
+            }
         }
 
-        if (authState.profile?.role == Role.STUDENT) {
-            TapEffectOverlay(
-                effectType = TapEffectType.fromKey(avatarState.config.tapEffect),
-                modifier = Modifier.fillMaxSize(),
-            )
-        }
+        // Pure drawing, no pointerInput of its own — stacking this on top can never
+        // intercept a touch, regardless of z-order.
+        TapEffectBursts(
+            bursts = tapBursts,
+            effectType = tapEffectType,
+            onBurstDone = { id -> tapBursts = tapBursts.filterNot { it.id == id } },
+            modifier = Modifier.fillMaxSize(),
+        )
     }
 }
 
