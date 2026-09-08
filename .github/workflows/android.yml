@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -58,3 +60,17 @@ jobs:
           name: unit-test-report
           path: app/build/reports/tests/
           if-no-files-found: ignore
+
+      - name: Publish release APK to a public download link
+        # Only on a real push to main/master (not on PRs), so every merge keeps the
+        # "latest" GitHub Release — and the stable download URL it exposes — current:
+        #   https://github.com/<owner>/<repo>/releases/latest/download/app-release.apk
+        # No extra secrets needed: the job-level GITHUB_TOKEN above is enough to publish a release.
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest build
+          body: Automatically published from ${{ github.sha }}. Signed with the debug key; installs directly, no extra signing needed.
+          make_latest: true
+          files: app/build/outputs/apk/release/app-release.apk
