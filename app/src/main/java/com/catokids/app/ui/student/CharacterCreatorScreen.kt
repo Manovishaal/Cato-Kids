@@ -155,7 +155,7 @@ private fun ItemTile(item: ShopItem?, selected: Boolean, owned: Boolean, onClick
             )
             if (item != null && !owned) {
                 Spacer(Modifier.height(4.dp))
-                Text("🔒 ${item.price}", style = MaterialTheme.typography.labelSmall, color = CatoPalette.InkSoft)
+                com.catokids.app.ui.components.EmojiText("🔒 ${item.price}", style = MaterialTheme.typography.labelSmall, color = CatoPalette.InkSoft)
             } else if (selected) {
                 Spacer(Modifier.height(4.dp))
                 Text("Equipped", style = MaterialTheme.typography.labelSmall, color = CatoPalette.CoralDeep)

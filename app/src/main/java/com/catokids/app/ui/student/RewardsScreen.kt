@@ -22,7 +22,7 @@ private data class Badge(val emoji: String, val title: String, val needs: Int, v
 private val BADGES = listOf(
     Badge("🌱", "First steps",     1,  "Finish your first lesson"),
     Badge("🖐️", "High five",       5,  "Finish 5 lessons"),
-    Badge("🔟", "Perfect ten",     10, "Finish 10 lessons"),
+    Badge("🏆", "Perfect ten",     10, "Finish 10 lessons"),
     Badge("📚", "Book worm",       20, "Finish 20 lessons"),
     Badge("🏅", "Champion",        35, "Finish 35 lessons"),
     Badge("👑", "Cato royalty",    50, "Finish 50 lessons"),

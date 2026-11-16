@@ -18,6 +18,7 @@ internal class LessonBuilder(
         intro: String = "",
         speak: String? = null,
         rounds: List<GameRound>,
+        crafts: List<Craft> = emptyList(),
     ) {
         lessons += Lesson(
             id = "${grade.wire.lowercase()}_${subject.wire}_$id",
@@ -28,7 +29,7 @@ internal class LessonBuilder(
             description = description,
             order = lessons.size,
             gameType = game,
-            content = LessonContent(intro = intro, speak = speak, rounds = rounds),
+            content = LessonContent(intro = intro, speak = speak, rounds = rounds, crafts = crafts),
         )
     }
 

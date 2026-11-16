@@ -21,7 +21,15 @@ data class Profile(
             .take(2).joinToString("") { it.first().uppercase() }
             .ifBlank { "?" }
 
-    val firstName: String get() = fullName.trim().substringBefore(' ').ifBlank { "friend" }
+    val firstName: String get() {
+        val parts = fullName.trim().split(" ").filter { it.isNotBlank() }
+        // "Ms. Priya" is greeted as "Ms. Priya", not "Ms.".
+        return when {
+            parts.isEmpty() -> "friend"
+            parts.size > 1 && parts[0].trimEnd('.').lowercase() in setOf("mr", "ms", "mrs", "miss", "dr") -> "${parts[0]} ${parts[1]}"
+            else -> parts[0]
+        }
+    }
 }
 
 data class School(

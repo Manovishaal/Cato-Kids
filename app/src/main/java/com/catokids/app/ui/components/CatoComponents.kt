@@ -44,6 +44,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.catokids.app.ui.theme.CatoPalette
 import com.catokids.app.ui.theme.LocalRoleColors
+import com.catokids.app.ui.theme.Radius
+import com.catokids.app.ui.theme.Space
+import com.catokids.app.ui.theme.Touch
 import kotlinx.coroutines.delay
 
 // ---------------------------------------------------------------- buttons
@@ -55,7 +58,7 @@ fun CatoButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     loading: Boolean = false,
-    color: Color = LocalRoleColors.current.primary,
+    color: Color = LocalRoleColors.current.deep,
     contentColor: Color = Color.White,
     leading: String? = null,
     /** Breathes gently — for the single button you want a child to notice. */
@@ -67,7 +70,7 @@ fun CatoButton(
         onClick = onClick,
         enabled = enabled && !loading,
         interactionSource = interaction,
-        shape = RoundedCornerShape(22.dp),
+        shape = Radius.control,
         colors = ButtonDefaults.buttonColors(
             containerColor = color,
             contentColor = contentColor,
@@ -78,7 +81,7 @@ fun CatoButton(
         modifier = modifier
             .pulse(enabled = emphasise && enabled && !loading)
             .bounceOnPress(interaction)
-            .heightIn(min = 58.dp),
+            .heightIn(min = Touch.min),
     ) {
         if (loading) {
             CircularProgressIndicator(
@@ -91,7 +94,7 @@ fun CatoButton(
                 EmojiArt(leading, size = 26.dp)
                 Spacer(Modifier.width(10.dp))
             }
-            Text(text, style = MaterialTheme.typography.labelLarge)
+            EmojiText(text, style = MaterialTheme.typography.labelLarge, maxLines = 2, textAlign = TextAlign.Center)
         }
     }
 }
@@ -101,22 +104,22 @@ fun CatoOutlineButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    color: Color = LocalRoleColors.current.primary,
+    color: Color = LocalRoleColors.current.deep,
     leading: String? = null,
 ) {
     OutlinedButton(
         onClick = onClick,
-        shape = RoundedCornerShape(22.dp),
-        border = BorderStroke(2.dp, color.copy(alpha = 0.5f)),
+        shape = Radius.control,
+        border = BorderStroke(2.dp, color.copy(alpha = 0.45f)),
         colors = ButtonDefaults.outlinedButtonColors(contentColor = color),
         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp),
-        modifier = modifier.heightIn(min = 58.dp),
+        modifier = modifier.heightIn(min = Touch.min),
     ) {
         if (leading != null) {
             EmojiArt(leading, size = 26.dp)
             Spacer(Modifier.width(10.dp))
         }
-        Text(text, style = MaterialTheme.typography.labelLarge)
+        EmojiText(text, style = MaterialTheme.typography.labelLarge, maxLines = 2, textAlign = TextAlign.Center)
     }
 }
 
@@ -144,7 +147,7 @@ fun CatoTextField(
             placeholder = placeholder?.let { { Text(it) } },
             singleLine = true,
             isError = error != null,
-            shape = RoundedCornerShape(18.dp),
+            shape = Radius.control,
             leadingIcon = leading?.let { { EmojiArt(it, size = 24.dp) } },
             trailingIcon = if (isPassword) {
                 {
@@ -190,7 +193,7 @@ fun CatoMultilineField(
         label = { Text(label) },
         placeholder = placeholder?.let { { Text(it) } },
         minLines = minLines,
-        shape = RoundedCornerShape(18.dp),
+        shape = Radius.control,
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = LocalRoleColors.current.primary,
             focusedLabelColor = LocalRoleColors.current.primary,
@@ -223,7 +226,7 @@ fun <T> CatoChipRow(
             Row(
                 Modifier
                     .clip(RoundedCornerShape(16.dp))
-                    .background(if (isSelected) LocalRoleColors.current.primary else CatoPalette.Cloud)
+                    .background(if (isSelected) LocalRoleColors.current.deep else CatoPalette.Cloud)
                     .clickable { onSelect(option) }
                     .padding(horizontal = 14.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -286,9 +289,10 @@ fun CatoCard(
     val interaction = remember { MutableInteractionSource() }
     val base = modifier
         .then(if (onClick != null) Modifier.bounceOnPress(interaction, pressedScale = 0.975f) else Modifier)
-        .shadow(6.dp, RoundedCornerShape(24.dp), clip = false, ambientColor = CatoPalette.Ink.copy(alpha = 0.08f))
-        .clip(RoundedCornerShape(24.dp))
+        .shadow(4.dp, Radius.card, clip = false, ambientColor = CatoPalette.Ink.copy(alpha = 0.06f), spotColor = CatoPalette.Ink.copy(alpha = 0.10f))
+        .clip(Radius.card)
         .background(color)
+        .border(1.dp, CatoPalette.Line.copy(alpha = 0.6f), Radius.card)
     Column(
         modifier = if (onClick != null) {
             base.clickable(interactionSource = interaction, indication = LocalIndication.current) { onClick() }
@@ -311,7 +315,7 @@ fun SectionHeader(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(title, style = MaterialTheme.typography.titleLarge, color = CatoPalette.Ink)
+        EmojiText(title, style = MaterialTheme.typography.titleLarge, color = CatoPalette.Ink)
         if (action != null && onAction != null) {
             TextButton(onClick = onAction) {
                 Text(action, color = LocalRoleColors.current.primary, style = MaterialTheme.typography.labelMedium)
@@ -334,16 +338,32 @@ fun CatoTopBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (onBack != null) {
-            IconButton(onClick = onBack) {
+            // A round, clearly-tappable back button: small children miss bare arrows.
+            Box(
+                Modifier
+                    .size(Touch.min - 8.dp)
+                    .clip(CircleShape)
+                    .background(Color.White)
+                    .border(1.dp, CatoPalette.Line, CircleShape)
+                    .clickable(onClickLabel = "Back") { onBack() },
+                contentAlignment = Alignment.Center,
+            ) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = CatoPalette.Ink)
             }
+            Spacer(Modifier.width(Space.md))
         } else {
             Spacer(Modifier.width(8.dp))
         }
         Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.titleLarge, color = CatoPalette.Ink, maxLines = 1)
+            EmojiText(
+                title, style = MaterialTheme.typography.titleLarge, color = CatoPalette.Ink, maxLines = 1,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            )
             if (subtitle != null) {
-                EmojiText(subtitle, style = MaterialTheme.typography.bodySmall, color = CatoPalette.InkSoft, maxLines = 1)
+                EmojiText(
+                    subtitle, style = MaterialTheme.typography.bodySmall, color = CatoPalette.InkSoft, maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                )
             }
         }
         trailing()
@@ -470,19 +490,18 @@ fun StatPill(
     modifier: Modifier = Modifier,
     color: Color = CatoPalette.AmberSoft,
 ) {
-    Row(
+    // Stacked rather than side by side, so three fit across the narrowest phone.
+    Column(
         modifier
-            .clip(RoundedCornerShape(18.dp))
+            .clip(Radius.control)
             .background(color)
-            .padding(horizontal = 14.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .padding(horizontal = Space.sm, vertical = Space.md),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         EmojiArt(emoji, size = 26.dp)
-        Spacer(Modifier.width(8.dp))
-        Column {
-            Text(value, style = MaterialTheme.typography.titleMedium, color = CatoPalette.Ink)
-            Text(label, style = MaterialTheme.typography.labelSmall, color = CatoPalette.InkSoft)
-        }
+        Spacer(Modifier.height(Space.xs))
+        Text(value, style = MaterialTheme.typography.titleMedium, color = CatoPalette.Ink, maxLines = 1)
+        Text(label, style = MaterialTheme.typography.labelSmall, color = CatoPalette.InkSoft, maxLines = 1)
     }
 }
 
@@ -491,7 +510,7 @@ fun Avatar(
     initials: String,
     modifier: Modifier = Modifier,
     size: androidx.compose.ui.unit.Dp = 44.dp,
-    color: Color = LocalRoleColors.current.primary,
+    color: Color = LocalRoleColors.current.deep,
 ) {
     Box(
         modifier
@@ -571,6 +590,6 @@ fun InfoBanner(
     ) {
         EmojiArt(emoji, size = 26.dp)
         Spacer(Modifier.width(10.dp))
-        Text(text, style = MaterialTheme.typography.bodyMedium, color = CatoPalette.Ink)
+        EmojiText(text, style = MaterialTheme.typography.bodyMedium, color = CatoPalette.Ink)
     }
 }

@@ -297,7 +297,31 @@ object ActivityLibrary {
         fineMotorReal4() +
         fineMotorReal5() +
         fineMotorReal6() +
-        fineMotorReal7()
+        fineMotorReal7() +
+        preKgWorkbookCrafts()
+
+    /**
+     * The craft pages of the PreKG workbooks (Spongy Apple … Zipzap Zebra, plus the EVS
+     * cut-and-stick pages). Built from the same list the lessons show, so the two never drift.
+     */
+    private fun preKgWorkbookCrafts(): List<LibraryActivity> =
+        com.catokids.app.data.curriculum.PreKgCrafts.all.map { craft ->
+            LibraryActivity(
+                id = craft.id,
+                title = if (craft.letter.isNotBlank()) "${craft.letter} · ${craft.title}" else craft.title,
+                domain = ART_AND_CRAFT,
+                grade = PREKG,
+                activityType = CRAFT,
+                objective = if (craft.letter.isNotBlank())
+                    "Letter Land craft for ${craft.letter} ${craft.letter.lowercase()} — from the PreKG English workbook."
+                else
+                    "Know My World craft — from the PreKG EVS workbook.",
+                instructions = craft.steps.joinToString(" "),
+                materials = craft.materials,
+                durationMinutes = 15,
+                pointsReward = 10,
+            )
+        }
 
     private fun emotionalSkillsReal1(): List<LibraryActivity> = listOf(
             LibraryActivity("emo-r001", "Puzzle Play", EMOTIONAL_SKILLS, PREKG, CRAFT,

@@ -37,6 +37,9 @@ import com.catokids.app.ui.components.floaty
 import com.catokids.app.ui.components.hop
 import com.catokids.app.ui.components.PopIn
 import com.catokids.app.ui.components.stagger
+import com.catokids.app.ui.components.SparkleBurst
+import com.catokids.app.ui.components.jelly
+import com.catokids.app.ui.components.sway
 import com.catokids.app.ui.theme.CatoPalette
 
 /**
@@ -49,9 +52,12 @@ fun PickOneGame(
     onDone: (Boolean) -> Unit,
     onSpeak: () -> Unit,
     showSpeaker: Boolean = true,
+    playful: Boolean = false,
 ) {
     var chosen by remember(round.id) { mutableStateOf<Int?>(null) }
-    val options = remember(round.id) { round.options }
+    // Lessons list the right answer first; shuffle (the same way every time for a given
+    // question) so the answer isn't always in the top-left card.
+    val options = remember(round.id) { round.options.shuffled(kotlin.random.Random(round.id.hashCode().toLong() + 13)) }
 
     Column(
         Modifier
@@ -88,6 +94,8 @@ fun PickOneGame(
                                 selected = chosen == index,
                                 modifier = Modifier.fillMaxWidth(),
                                 onClick = { chosen = index },
+                                playful = playful,
+                                index = index,
                             )
                         }
                     }
@@ -114,7 +122,10 @@ private fun OptionCard(
     selected: Boolean,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
+    playful: Boolean = false,
+    index: Int = 0,
 ) {
+    var taps by remember { mutableStateOf(0) }
     val interaction = remember { MutableInteractionSource() }
     val scale by animateFloatAsState(
         targetValue = if (selected) 1.05f else 1f,
@@ -130,13 +141,27 @@ private fun OptionCard(
             .clip(RoundedCornerShape(22.dp))
             .background(if (selected) CatoPalette.CoralTint else Color.White)
             .border(3.dp, border, RoundedCornerShape(22.dp))
-            .clickable(interactionSource = interaction, indication = LocalIndication.current) { onClick() }
+            .clickable(interactionSource = interaction, indication = LocalIndication.current) { taps++; onClick() }
             .padding(14.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
         if (option.emoji.isNotBlank()) {
-            EmojiArt(option.emoji, size = 50.dp)
+            if (playful) {
+                // Bigger, wobbling pictures that squash when touched and sparkle when picked.
+                Box(contentAlignment = Alignment.Center) {
+                    SparkleBurst(trigger = if (selected) taps else null, modifier = Modifier.size(96.dp))
+                    EmojiArt(
+                        option.emoji,
+                        size = 64.dp,
+                        modifier = Modifier
+                            .sway(degrees = 5f, periodMillis = 1600 + index * 150, phase = index)
+                            .jelly(trigger = if (taps > 0) taps else null),
+                    )
+                }
+            } else {
+                EmojiArt(option.emoji, size = 50.dp)
+            }
             Spacer(Modifier.height(6.dp))
         }
         EmojiText(
@@ -229,6 +254,7 @@ fun CountTapGame(
     onDone: (Boolean) -> Unit,
     onSpeak: () -> Unit,
     onTap: () -> Unit,
+    playful: Boolean = false,
 ) {
     var chosen by remember(round.id) { mutableStateOf<String?>(null) }
     var countedTo by remember(round.id) { mutableStateOf(0) }
@@ -259,21 +285,38 @@ fun CountTapGame(
                     animationSpec = spring(dampingRatio = 0.42f, stiffness = Spring.StiffnessLow),
                     label = "count$i",
                 )
-                EmojiArt(
-                    round.emoji,
-                    size = 40.dp,
-                    modifier = Modifier
-                        .padding(6.dp)
-                        .scale(objectScale)
-                        .floaty(
-                            amplitude = if (tapped) 0.dp else 2.dp,
-                            periodMillis = 2200,
-                            phase = i * 0.7f,
-                        )
-                        .clickable {
-                            if (i == countedTo) { countedTo++; onTap() }
-                        },
-                )
+                Box(contentAlignment = Alignment.Center) {
+                    EmojiArt(
+                        round.emoji,
+                        size = 40.dp,
+                        modifier = Modifier
+                            .padding(6.dp)
+                            .scale(objectScale)
+                            .floaty(
+                                amplitude = if (tapped) 0.dp else 2.dp,
+                                periodMillis = 2200,
+                                phase = i * 0.7f,
+                            )
+                            .then(if (playful) Modifier.jelly(trigger = if (tapped) i else null) else Modifier)
+                            .clickable {
+                                if (i == countedTo) { countedTo++; onTap() }
+                            },
+                    )
+                    // Pre-KG: the number pops up on each picture as it is counted.
+                    if (playful && tapped) {
+                        PopIn(modifier = Modifier.align(Alignment.TopEnd), fromScale = 0.4f, rise = 6.dp) {
+                            Text(
+                                "${i + 1}",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = Color.White,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(50))
+                                    .background(CatoPalette.Coral)
+                                    .padding(horizontal = 6.dp, vertical = 1.dp),
+                            )
+                        }
+                    }
+                }
             }
         }
         if (countedTo > 0) {

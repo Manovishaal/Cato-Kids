@@ -30,9 +30,14 @@ class AuthViewModel(private val container: AppContainer) : ViewModel() {
 
     init {
         viewModelScope.launch {
-            val profile = container.auth.restore()
+            // Reading the saved session (and, for real accounts, starting the Supabase
+            // client) is I/O and object setup: keep it off the main thread so the splash
+            // animates smoothly while it happens.
+            val profile = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                container.auth.restore()
+            }
             _state.value = _state.value.copy(profile = profile, restored = true)
-            profile?.let { container.progress.sync(it.id) }
+            profile?.let { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { container.progress.sync(it.id) } }
         }
     }
 

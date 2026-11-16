@@ -2,6 +2,8 @@ package com.catokids.app.ui.dashboard
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
@@ -54,11 +56,15 @@ fun TeacherHomeScreen(
                     Modifier
                         .padding(horizontal = 20.dp)
                         .fillMaxWidth(),
-                    color = CatoPalette.Periwinkle,
+                    color = CatoPalette.PeriwinkleDeep,
                     onClick = onOpenCreator,
                 ) {
                     Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        EmojiArt("🛠️", size = 30.dp)
+                        Box(
+                            Modifier.size(44.dp).clip(androidx.compose.foundation.shape.CircleShape)
+                                .background(androidx.compose.ui.graphics.Color.White),
+                            contentAlignment = Alignment.Center,
+                        ) { EmojiArt("🛠️", size = 26.dp) }
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
                             Text(
@@ -95,7 +101,7 @@ fun TeacherHomeScreen(
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    MetricCard("👧", "${state.students.size}", "Students", Modifier.weight(1f))
+                    MetricCard("🤸", "${state.students.size}", "Students", Modifier.weight(1f))
                     MetricCard("✅", "${state.averageCompletion}%", "Completion", Modifier.weight(1f), CatoPalette.TealSoft)
                     MetricCard("🎯", "${state.averageScore}%", "Avg score", Modifier.weight(1f), CatoPalette.AmberSoft)
                 }

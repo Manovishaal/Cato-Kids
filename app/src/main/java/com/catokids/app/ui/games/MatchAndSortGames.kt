@@ -158,7 +158,8 @@ private fun MatchTile(
             EmojiArt(emoji, size = 26.dp)
             Spacer(Modifier.width(8.dp))
         }
-        Text(
+        // EmojiText so picture tiles ("🍓🍓🍓") use the bundled artwork, not the device font.
+        EmojiText(
             text,
             style = if (text.length <= 3) MaterialTheme.typography.headlineSmall
                     else MaterialTheme.typography.titleMedium,

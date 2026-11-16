@@ -169,6 +169,87 @@ class CurriculumTest {
     }
 
     @Test
+    fun `every PreKG letter has its workbook craft in a lesson and in the library`() {
+        val inLessons = CatoCurriculum.forGradeAndSubject(Grade.PREKG, SubjectId.LETTER_LAND)
+            .flatMap { it.content.crafts }
+        val letters = inLessons.map { it.letter }.filter { it.isNotBlank() }.toSet()
+        assertEquals(('A'..'Z').map { it.toString() }.toSet(), letters)
+
+        val library = com.catokids.app.data.local.ActivityLibrary.all.map { it.id }.toSet()
+        inLessons.forEach { assertTrue("${it.id} missing from the Activity Library", it.id in library) }
+    }
+
+    @Test
+    fun `crafts are complete and uniquely named`() {
+        val crafts = all.flatMap { it.content.crafts }
+        assertEquals("Duplicate craft ids", crafts.size, crafts.map { it.id }.distinct().size)
+        crafts.forEach { craft ->
+            assertTrue("${craft.id} has no title", craft.title.isNotBlank())
+            assertTrue("${craft.id} has no picture", craft.emoji.isNotBlank())
+            assertTrue("${craft.id} has no steps", craft.steps.isNotEmpty())
+            assertTrue("${craft.id} has no materials", craft.materials.isNotEmpty())
+        }
+    }
+
+    @Test
+    fun `library activity ids are unique`() {
+        val ids = com.catokids.app.data.local.ActivityLibrary.all.map { it.id }
+        val dupes = ids.groupBy { it }.filter { it.value.size > 1 }.keys
+        assertTrue("Duplicate activity ids: $dupes", dupes.isEmpty())
+    }
+
+    /**
+     * Lessons must appear in the same order as the pages of the printed workbooks. Topics
+     * the app teaches that the book doesn't have sit just before each book's quiz.
+     */
+    @Test
+    fun `lessons follow the workbook page order`() {
+        fun ids(grade: Grade, subject: SubjectId) = CatoCurriculum.forGradeAndSubject(grade, subject)
+            .sortedBy { it.order }
+            .map { it.id.removePrefix("${grade.wire.lowercase()}_${subject.wire}_") }
+
+        val letterGroups = listOf("a_d", "e_h", "i_l", "m_p", "q_t", "u_z")
+        val preKgLetters = letterGroups.flatMap { g ->
+            listOf("meet_$g", "write_$g", "learnt_$g") +
+                (if (g == "a_d") listOf("find_a") else emptyList()) +
+                (if (g == "i_l") listOf("strokes") else emptyList())
+        } + listOf("big_small", "quiz")
+
+        val expected = mapOf(
+            (Grade.PREKG to SubjectId.LETTER_LAND) to preKgLetters,
+            (Grade.PREKG to SubjectId.NUMBER_LAND) to listOf("big_small_size", "tall_short", "heavy_light", "more_less",
+                "count_1_5", "count_6_10", "colors", "shapes", "match_qty", "count_11_15", "odd_one_out",
+                "count_16_20", "trace_num", "trace_6_10", "trace_11_20", "trace_16_20", "quiz"),
+            (Grade.PREKG to SubjectId.KNOW_MY_WORLD) to listOf("my_family", "my_school", "my_body", "fruits",
+                "vegetables", "fruits_veg", "trees", "animals", "find_me", "birds", "seasons", "keep_clean",
+                "manners", "quiz"),
+            (Grade.LKG to SubjectId.LETTER_LAND) to (1..6).flatMap { listOf("write_$it", "find_$it") } +
+                listOf("case_match", "vowels", "beginning_sounds", "cvc_intro", "quiz"),
+            (Grade.LKG to SubjectId.NUMBER_LAND) to listOf("more_less", "shapes2", "write_1_10", "count_6_10",
+                "before_after", "patterns", "add_intro", "quiz"),
+            (Grade.LKG to SubjectId.KNOW_MY_WORLD) to listOf("animal_homes", "helpers", "transport", "living",
+                "weather", "quiz"),
+            (Grade.UKG to SubjectId.LETTER_LAND) to listOf("sight_words", "cvc_a", "cvc_e_i", "cvc_o_u",
+                "write_words", "rhyme", "blends", "quiz"),
+            (Grade.UKG to SubjectId.NUMBER_LAND) to listOf("count_20", "write_teens", "addition", "subtraction",
+                "shapes3", "skip", "time_money", "quiz"),
+            (Grade.UKG to SubjectId.KNOW_MY_WORLD) to listOf("plants", "young_ones", "good_habits", "safety",
+                "earth", "senses", "quiz"),
+        )
+        expected.forEach { (key, order) ->
+            assertEquals("${key.first} / ${key.second} is out of book order", order, ids(key.first, key.second))
+        }
+    }
+
+    /** The README quotes the lesson count; keep it true. */
+    @Test
+    fun `README lesson count matches the curriculum`() {
+        val readme = java.io.File("../README.md").readText()
+        val quoted = Regex("""\*\*(\d+) lessons\*\*""").find(readme)?.groupValues?.get(1)?.toInt()
+        assertEquals("README says $quoted lessons", all.size, quoted)
+    }
+
+    @Test
     fun `the syllabus is a reasonable size`() {
         assertTrue("Only ${all.size} lessons", all.size >= 45)
         Grade.entries.forEach {

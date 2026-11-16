@@ -55,11 +55,15 @@ fun SchoolHomeScreen(
                     Modifier
                         .padding(horizontal = 20.dp, vertical = 6.dp)
                         .fillMaxWidth(),
-                    color = CatoPalette.Violet,
+                    color = CatoPalette.VioletDeep,
                     onClick = onOpenCreator,
                 ) {
                     Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        EmojiArt("🛠️", size = 30.dp)
+                        Box(
+                            Modifier.size(44.dp).clip(androidx.compose.foundation.shape.CircleShape)
+                                .background(androidx.compose.ui.graphics.Color.White),
+                            contentAlignment = Alignment.Center,
+                        ) { EmojiArt("🛠️", size = 26.dp) }
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
                             Text(
@@ -97,7 +101,7 @@ fun SchoolHomeScreen(
                         )
                         Spacer(Modifier.height(16.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            MetricCard("👧", "${state.students.size}", "Students", Modifier.weight(1f), CatoPalette.VioletSoft)
+                            MetricCard("🤸", "${state.students.size}", "Students", Modifier.weight(1f), CatoPalette.VioletSoft)
                             MetricCard("🏫", "${state.classes.size}", "Classes", Modifier.weight(1f), CatoPalette.PeriwinkleSoft)
                             MetricCard("🟢", "${state.activeToday}", "Active today", Modifier.weight(1f), CatoPalette.TealSoft)
                         }
@@ -183,11 +187,15 @@ fun AdminHomeScreen(
                     Modifier
                         .padding(horizontal = 20.dp, vertical = 6.dp)
                         .fillMaxWidth(),
-                    color = CatoPalette.Amber,
+                    color = androidx.compose.ui.graphics.Color(0xFF9A6206),
                     onClick = onOpenCreator,
                 ) {
                     Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        EmojiArt("🛠️", size = 30.dp)
+                        Box(
+                            Modifier.size(44.dp).clip(androidx.compose.foundation.shape.CircleShape)
+                                .background(androidx.compose.ui.graphics.Color.White),
+                            contentAlignment = Alignment.Center,
+                        ) { EmojiArt("🛠️", size = 26.dp) }
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
                             Text(
@@ -215,7 +223,7 @@ fun AdminHomeScreen(
                                 MetricCard(
                                     emoji = role.emoji,
                                     value = "${state.counts[role] ?: 0}",
-                                    label = role.label,
+                                    label = if (role == com.catokids.app.data.model.Role.ADMIN) "Admins" else role.label + "s",
                                     modifier = Modifier.weight(1f),
                                     tint = CatoPalette.AmberSoft,
                                 )

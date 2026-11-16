@@ -109,7 +109,7 @@ fun ProfileScreen(
                                 com.catokids.app.ui.auth.GradeChip(
                                     grade = g,
                                     selected = grade == g,
-                                    color = colors.primary,
+                                    color = colors.deep,
                                     modifier = Modifier.weight(1f),
                                     onClick = { grade = g; saved = false },
                                 )
@@ -153,7 +153,7 @@ fun ProfileScreen(
                         Switch(
                             checked = soundOn,
                             onCheckedChange = onSoundChange,
-                            colors = SwitchDefaults.colors(checkedTrackColor = colors.primary),
+                            colors = SwitchDefaults.colors(checkedTrackColor = colors.deep),
                         )
                     }
                 }

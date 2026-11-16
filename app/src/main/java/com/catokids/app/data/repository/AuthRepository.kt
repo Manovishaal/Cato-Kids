@@ -165,6 +165,8 @@ class AuthRepository(private val prefs: AppPreferences) {
                 )
             ) { filter { eq("id", current.id) } }
         }
+        // Explore mode lives on the device: keep the chosen class (and name) across restarts.
+        if (_isDemo.value) prefs.saveDemoSession(updated.role, updated.fullName, updated.grade)
         _profile.value = updated
         updated
     }

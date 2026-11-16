@@ -11,8 +11,8 @@ enum class SubjectId(
     val emoji: String,
     val blurb: String,
 ) {
-    LETTER_LAND("letter_land", "Letter Land",   "Reading, Writing & Activities", "🔤", "Letters, sounds and first words"),
-    NUMBER_LAND("number_land", "Number Land",   "Concepts and Number Fun",       "🔢", "Counting, shapes and patterns"),
+    LETTER_LAND("letter_land", "Letter Land",   "Reading, Writing & Activities", "✏️", "Letters, sounds and first words"),
+    NUMBER_LAND("number_land", "Number Land",   "Concepts and Number Fun",       "🐞", "Counting, shapes and patterns"),
     KNOW_MY_WORLD("know_my_world", "Know My World", "Fun Activities",            "🌍", "The world around me");
 
     companion object {
@@ -82,11 +82,28 @@ data class GameRound(
     val explanation: String? = null,
 )
 
+/**
+ * A hands-on craft from the printed workbook ("Spongy Apple", "Finger print fish" …).
+ * It happens off-screen with a grown-up, so the app only shows what to gather and what to do.
+ */
+@Serializable
+data class Craft(
+    val id: String,
+    val title: String,
+    val emoji: String,
+    /** The letter it belongs to in Letter Land, or blank for other books. */
+    val letter: String = "",
+    val materials: List<String> = emptyList(),
+    val steps: List<String> = emptyList(),
+)
+
 @Serializable
 data class LessonContent(
     val intro: String = "",
     val speak: String? = null,
     val rounds: List<GameRound> = emptyList(),
+    /** Workbook crafts to do after the lesson. Shown on the result screen. */
+    val crafts: List<Craft> = emptyList(),
 )
 
 @Serializable

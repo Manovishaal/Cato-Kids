@@ -16,10 +16,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val container = (application as CatoKidsApplication).container
 
+        // Debug builds only: `adb shell am start ... --es open_lesson <lesson id>` jumps
+        // straight into a lesson, so new games can be tested without unlocking the path.
+        val openLesson = if (BuildConfig.DEBUG) intent?.getStringExtra("open_lesson") else null
+
         setContent {
             val profile by container.auth.profile.collectAsState()
             CatoKidsTheme(role = profile?.role) {
-                CatoApp(container)
+                CatoApp(container, debugOpenLesson = openLesson)
             }
         }
     }

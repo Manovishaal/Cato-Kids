@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -25,6 +26,10 @@ import com.catokids.app.data.model.Lesson
 import com.catokids.app.data.model.SubjectId
 import com.catokids.app.ui.components.*
 import com.catokids.app.ui.theme.CatoPalette
+import com.catokids.app.ui.theme.Radius
+import com.catokids.app.ui.theme.Space
+import com.catokids.app.ui.theme.Touch
+import androidx.compose.ui.text.style.TextOverflow
 
 @Composable
 fun StudentHomeScreen(
@@ -44,121 +49,67 @@ fun StudentHomeScreen(
     CatoBackdrop(top = CatoPalette.CoralSoft) {
         LazyColumn(
             Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 40.dp),
+            contentPadding = PaddingValues(top = Space.xxxl, bottom = Space.xxxl),
         ) {
+            // ---- greeting: who is playing, and their coins ----
             item {
                 Row(
                     Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .padding(top = 52.dp, bottom = 8.dp),
+                        .padding(horizontal = Space.gutter, vertical = Space.sm),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    Avatar(
+                        profile?.initials ?: "?",
+                        size = 52.dp,
+                        modifier = Modifier.clip(CircleShape).clickable(onClickLabel = "My profile") { onOpenProfile() },
+                    )
+                    Spacer(Modifier.width(Space.md))
                     Column(Modifier.weight(1f)) {
-                        EmojiText(
-                            "✋ Hi, ${profile?.firstName ?: "friend"}",
-                            style = MaterialTheme.typography.titleMedium,
+                        Text(
+                            "Hi, ${profile?.firstName ?: "friend"}!",
+                            style = MaterialTheme.typography.headlineSmall,
                             color = CatoPalette.Ink,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
-                        EmojiText(
-                            "${state.grade.emoji} ${state.grade.longLabel}",
+                        Text(
+                            state.grade.longLabel,
                             style = MaterialTheme.typography.bodySmall,
                             color = CatoPalette.InkSoft,
+                            maxLines = 1,
                         )
                     }
                     CoinChip(profile?.coins ?: 0, onClick = onOpenRewards)
-                    Spacer(Modifier.width(10.dp))
-                    Avatar(profile?.initials ?: "?", modifier = Modifier.clickable { onOpenProfile() })
                 }
             }
 
-            item { Spacer(Modifier.height(6.dp)) }
-
-            // ---- quick access: homework, character, shop ----
-            item {
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    item { QuickAccessTile("📬", "My homework", CatoPalette.PeriwinkleSoft, onOpenAssignments) }
-                    item { QuickAccessTile("🧑‍🎨", "My character", CatoPalette.CoralSoft, onOpenCharacter) }
-                    item { QuickAccessTile("🛍️", "Coin shop", CatoPalette.AmberSoft, onOpenShop) }
-                    item { QuickAccessTile("🧸", "3D Toy Box", CatoPalette.TealSoft, onOpenToyBox) }
-                }
-            }
-
-            item { Spacer(Modifier.height(18.dp)) }
-
-            item {
-                PopIn(delayMillis = 40) {
-                    Text(
-                        "Ready to learn?",
-                        style = MaterialTheme.typography.displaySmall,
-                        color = CatoPalette.Ink,
-                        modifier = Modifier.padding(horizontal = 20.dp),
-                    )
-                }
-            }
-
-            item { Spacer(Modifier.height(16.dp)) }
-
-            // ---- continue / start card ----
+            // ---- the one thing to do next ----
             item {
                 val lesson = state.continueLesson ?: state.nextLesson
                 if (lesson != null) {
-                    PopIn(delayMillis = 110) {
+                    PopIn(delayMillis = 60) {
                         ContinueCard(
                             lesson = lesson,
-                            isResume = state.continueLesson != null && !state.isDone(lesson.id),
+                            isResume = state.continueLesson != null,
                             onClick = { onOpenLesson(lesson) },
-                            modifier = Modifier.padding(horizontal = 20.dp),
+                            modifier = Modifier.padding(horizontal = Space.gutter, vertical = Space.md),
                         )
                     }
                 }
             }
 
-            item { Spacer(Modifier.height(20.dp)) }
-
-            // ---- overall progress ----
-            item {
-                PopIn(delayMillis = 180) {
-                    CatoCard(Modifier.padding(horizontal = 20.dp).fillMaxWidth()) {
-                        Column(Modifier.padding(18.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("My progress", style = MaterialTheme.typography.titleMedium, color = CatoPalette.Ink)
-                                Spacer(Modifier.weight(1f))
-                                Text(
-                                    "${state.summary.completedLessons}/${state.summary.totalLessons}",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = CatoPalette.Coral,
-                                )
-                            }
-                            Spacer(Modifier.height(12.dp))
-                            CatoProgressBar(state.summary.fraction, Modifier.fillMaxWidth())
-                            Spacer(Modifier.height(14.dp))
-                            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                StatPill("⭐", "${state.summary.stars}", "stars", Modifier.weight(1f))
-                                StatPill("🎯", "${state.summary.averageScore}%", "average", Modifier.weight(1f), CatoPalette.TealSoft)
-                                StatPill("⏱️", "${state.summary.minutesPlayed}m", "played", Modifier.weight(1f), CatoPalette.PeriwinkleSoft)
-                            }
-                        }
-                    }
-                }
-            }
-
-            item { Spacer(Modifier.height(22.dp)) }
-
-            // ---- class switcher ----
-            item {
-                Column(Modifier.padding(horizontal = 20.dp)) {
-                    SectionHeader("My class")
-                    Spacer(Modifier.height(10.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            // ---- class switcher (Explore only: a signed-in child's class is set by a grown-up) ----
+            if (state.demo) item {
+                Column(Modifier.padding(horizontal = Space.gutter, vertical = Space.sm)) {
+                    SectionHeader("Pick a class")
+                    Spacer(Modifier.height(Space.sm))
+                    Row(horizontalArrangement = Arrangement.spacedBy(Space.sm)) {
                         Grade.entries.forEach { g ->
                             com.catokids.app.ui.auth.GradeChip(
                                 grade = g,
                                 selected = state.grade == g,
-                                color = CatoPalette.Coral,
+                                color = CatoPalette.CoralDeep,
                                 modifier = Modifier.weight(1f),
                                 onClick = { onChangeGrade(g) },
                             )
@@ -167,42 +118,86 @@ fun StudentHomeScreen(
                 }
             }
 
-            item { Spacer(Modifier.height(24.dp)) }
-
-            // ---- subjects ----
+            // ---- the three workbooks ----
             item {
-                SectionHeader("My books", Modifier.padding(horizontal = 20.dp))
+                SectionHeader("My books", Modifier.padding(horizontal = Space.gutter).padding(top = Space.lg, bottom = Space.sm))
             }
-            item { Spacer(Modifier.height(12.dp)) }
-
             itemsIndexed(SubjectId.entries.toList()) { index, subject ->
                 val summary = state.bySubject[subject]
-                PopIn(delayMillis = 260 + stagger(index, step = 80)) {
+                PopIn(delayMillis = 120 + stagger(index, step = 70)) {
                     SubjectCard(
                         subject = subject,
                         completed = summary?.completedLessons ?: 0,
                         total = summary?.totalLessons ?: 0,
                         fraction = summary?.fraction ?: 0f,
+                        stars = summary?.stars ?: 0,
                         onClick = { onOpenSubject(subject) },
                         modifier = Modifier
-                            .padding(horizontal = 20.dp, vertical = 6.dp)
+                            .padding(horizontal = Space.gutter, vertical = Space.sm - Space.xxs)
                             .fillMaxWidth(),
                     )
                 }
             }
 
-            item { Spacer(Modifier.height(22.dp)) }
-
-            // ---- recommended games ----
-            item { SectionHeader("Games for you", Modifier.padding(horizontal = 20.dp)) }
-            item { Spacer(Modifier.height(12.dp)) }
+            // ---- shortcuts: a 2x2 grid, so nothing hides off the edge of a small phone ----
             item {
-                val picks = remember(state.grade) {
-                    CatoCurriculum.forGrade(state.grade).distinctBy { it.gameType }.take(8)
+                Column(
+                    Modifier.padding(horizontal = Space.gutter).padding(top = Space.xl),
+                    verticalArrangement = Arrangement.spacedBy(Space.md),
+                ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(Space.md)) {
+                        QuickAccessTile("✉️", "Homework", CatoPalette.PeriwinkleSoft, onOpenAssignments, Modifier.weight(1f))
+                        QuickAccessTile("🤸", "My character", CatoPalette.CoralSoft, onOpenCharacter, Modifier.weight(1f))
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(Space.md)) {
+                        QuickAccessTile("👑", "Coin shop", CatoPalette.AmberSoft, onOpenShop, Modifier.weight(1f))
+                        QuickAccessTile("🧸", "Toy box", CatoPalette.TealSoft, onOpenToyBox, Modifier.weight(1f))
+                    }
+                }
+            }
+
+            // ---- how it's going ----
+            item {
+                CatoCard(
+                    Modifier
+                        .padding(horizontal = Space.gutter)
+                        .padding(top = Space.xl)
+                        .fillMaxWidth(),
+                ) {
+                    Column(Modifier.padding(Space.lg)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("My progress", style = MaterialTheme.typography.titleMedium, color = CatoPalette.Ink)
+                            Spacer(Modifier.weight(1f))
+                            Text(
+                                "${state.summary.completedLessons} of ${state.summary.totalLessons}",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = CatoPalette.CoralDeep,
+                            )
+                        }
+                        Spacer(Modifier.height(Space.md))
+                        CatoProgressBar(state.summary.fraction, Modifier.fillMaxWidth(), color = CatoPalette.Coral)
+                        Spacer(Modifier.height(Space.md))
+                        Row(horizontalArrangement = Arrangement.spacedBy(Space.sm)) {
+                            StatPill("⭐", "${state.summary.stars}", "stars", Modifier.weight(1f))
+                            StatPill("🎯", "${state.summary.averageScore}%", "score", Modifier.weight(1f), CatoPalette.TealSoft)
+                            StatPill("⏱️", "${state.summary.minutesPlayed}m", "played", Modifier.weight(1f), CatoPalette.PeriwinkleSoft)
+                        }
+                    }
+                }
+            }
+
+            // ---- more games ----
+            item {
+                SectionHeader("Games for you", Modifier.padding(horizontal = Space.gutter).padding(top = Space.xl, bottom = Space.sm))
+            }
+            item {
+                val picks = remember(state.grade, state.progress) {
+                    // Same lock rule as the book pages: only lessons the child can open now.
+                    CatoCurriculum.forGrade(state.grade).filterNot { state.isLocked(it) }.distinctBy { it.gameType }.distinctBy { lessonCover(it) }.take(8)
                 }
                 LazyRow(
-                    contentPadding = PaddingValues(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(horizontal = Space.gutter),
+                    horizontalArrangement = Arrangement.spacedBy(Space.md),
                 ) {
                     items(picks) { lesson ->
                         GameTile(lesson = lesson, stars = state.starsFor(lesson.id)) { onOpenLesson(lesson) }
@@ -214,24 +209,23 @@ fun StudentHomeScreen(
 }
 
 @Composable
-private fun QuickAccessTile(emoji: String, label: String, color: Color, onClick: () -> Unit) {
-    Column(
-        Modifier
-            .width(96.dp)
-            .clip(RoundedCornerShape(20.dp))
+private fun QuickAccessTile(emoji: String, label: String, color: Color, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Row(
+        modifier
+            .heightIn(min = Touch.kid)
+            .clip(Radius.control)
             .background(color)
-            .clickable { onClick() }
-            .padding(vertical = 14.dp, horizontal = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+            .clickable(onClickLabel = label) { onClick() }
+            .padding(horizontal = Space.md, vertical = Space.md),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        EmojiArt(emoji, size = 28.dp)
-        Spacer(Modifier.height(6.dp))
+        EmojiArt(emoji, size = 40.dp)
+        Spacer(Modifier.width(Space.sm))
         Text(
             label,
-            style = MaterialTheme.typography.labelSmall,
+            style = MaterialTheme.typography.titleSmall,
             color = CatoPalette.Ink,
             maxLines = 2,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
     }
 }
@@ -241,15 +235,16 @@ private fun CoinChip(coins: Int, onClick: () -> Unit) {
     Row(
         Modifier
             .hop(trigger = coins.takeIf { it > 0 })
+            .heightIn(min = 44.dp)
             .clip(CircleShape)
             .background(CatoPalette.AmberSoft)
-            .clickable { onClick() }
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .clickable(onClickLabel = "My rewards") { onClick() }
+            .padding(horizontal = Space.md, vertical = Space.sm),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        EmojiArt("🪙", size = 22.dp)
-        Spacer(Modifier.width(6.dp))
-        Text("$coins", style = MaterialTheme.typography.titleSmall, color = CatoPalette.Ink)
+        EmojiArt("🪙", size = 24.dp)
+        Spacer(Modifier.width(Space.xs + Space.xxs))
+        Text("$coins", style = MaterialTheme.typography.titleMedium, color = CatoPalette.Ink)
     }
 }
 
@@ -260,48 +255,65 @@ private fun ContinueCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(
+    val colours = subjectColours(lesson.subject)
+    Column(
         modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(26.dp))
-            .background(Brush.horizontalGradient(listOf(CatoPalette.AmberLight, CatoPalette.Amber)))
-            .clickable { onClick() }
-            .padding(20.dp),
+            .clip(Radius.sheet)
+            .background(Brush.verticalGradient(listOf(CatoPalette.AmberLight, CatoPalette.Amber)))
+            .clickable(onClickLabel = if (isResume) "Resume" else "Play") { onClick() }
+            .padding(Space.xl),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(
-                    if (isResume) "Continue where you left off" else "Start your next lesson",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = CatoPalette.Ink.copy(alpha = 0.7f),
+                    if (isResume) "Keep going" else "Next up",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = CatoPalette.Ink.copy(alpha = 0.72f),
                 )
-                Spacer(Modifier.height(6.dp))
-                Text(lesson.title, style = MaterialTheme.typography.headlineSmall, color = CatoPalette.Ink)
+                Spacer(Modifier.height(Space.xs))
                 Text(
-                    "${lesson.subject.title} · ${lesson.gameType.title}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = CatoPalette.Ink.copy(alpha = 0.75f),
+                    lesson.title,
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = CatoPalette.Ink,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
-                Spacer(Modifier.height(12.dp))
-                Row(
-                    Modifier
-                        .pulse(maxScale = 1.05f, periodMillis = 1700)
-                        .clip(CircleShape)
-                        .background(Color.White)
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    EmojiText("▶", color = CatoPalette.CoralDeep)
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        if (isResume) "Resume" else "Let's go",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = CatoPalette.CoralDeep,
-                    )
-                }
+                Text(
+                    lesson.subject.title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = CatoPalette.Ink.copy(alpha = 0.72f),
+                    maxLines = 1,
+                )
             }
-            Spacer(Modifier.width(10.dp))
-            GooseCharacter(modifier = Modifier.size(96.dp), cheering = true)
+            Spacer(Modifier.width(Space.md))
+            Box(
+                Modifier
+                    .size(92.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.7f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                EmojiArt(lessonCover(lesson), size = 70.dp, modifier = Modifier.sway(degrees = 5f, periodMillis = 2200))
+            }
+        }
+        Spacer(Modifier.height(Space.lg))
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = Touch.min)
+                .clip(Radius.control)
+                .background(colours.deep),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Rounded.PlayArrow, null, Modifier.size(32.dp), tint = Color.White)
+            Spacer(Modifier.width(Space.sm))
+            Text(
+                if (isResume) "Resume" else "Play",
+                style = MaterialTheme.typography.titleLarge,
+                color = Color.White,
+            )
         }
     }
 }
@@ -312,72 +324,79 @@ private fun SubjectCard(
     completed: Int,
     total: Int,
     fraction: Float,
+    stars: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val tint = when (subject) {
-        SubjectId.LETTER_LAND   -> CatoPalette.CoralLight
-        SubjectId.NUMBER_LAND   -> CatoPalette.Teal
-        SubjectId.KNOW_MY_WORLD -> CatoPalette.Periwinkle
-    }
+    val colours = subjectColours(subject)
     CatoCard(modifier = modifier, onClick = onClick) {
-        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            Modifier
+                .heightIn(min = 96.dp)
+                .padding(Space.md),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Box(
                 Modifier
-                    .size(62.dp)
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(tint.copy(alpha = 0.25f)),
+                    .size(72.dp)
+                    .clip(Radius.control)
+                    .background(colours.soft),
                 contentAlignment = Alignment.Center,
             ) {
-                EmojiArt(subject.emoji, size = 36.dp)
+                EmojiArt(subject.emoji, size = 56.dp)
             }
-            Spacer(Modifier.width(14.dp))
+            Spacer(Modifier.width(Space.md))
             Column(Modifier.weight(1f)) {
-                Text(subject.title, style = MaterialTheme.typography.titleLarge, color = CatoPalette.Ink)
-                Text(subject.blurb, style = MaterialTheme.typography.bodySmall, color = CatoPalette.InkSoft)
-                Spacer(Modifier.height(10.dp))
-                CatoProgressBar(fraction, Modifier.fillMaxWidth(), color = tint, height = 8.dp)
+                Text(subject.title, style = MaterialTheme.typography.titleLarge, color = CatoPalette.Ink, maxLines = 1)
+                Text(
+                    subject.blurb,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = CatoPalette.InkSoft,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(Modifier.height(Space.sm))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    CatoProgressBar(fraction, Modifier.weight(1f), color = colours.main, height = 10.dp)
+                    Spacer(Modifier.width(Space.sm))
+                    Text("$completed/$total", style = MaterialTheme.typography.labelMedium, color = CatoPalette.InkSoft)
+                }
             }
-            Spacer(Modifier.width(12.dp))
-            Text("$completed/$total", style = MaterialTheme.typography.labelMedium, color = CatoPalette.InkSoft)
         }
     }
 }
 
 @Composable
 private fun GameTile(lesson: Lesson, stars: Int, onClick: () -> Unit) {
-    val tint = when (lesson.subject) {
-        SubjectId.LETTER_LAND   -> CatoPalette.CoralSoft
-        SubjectId.NUMBER_LAND   -> CatoPalette.TealSoft
-        SubjectId.KNOW_MY_WORLD -> CatoPalette.PeriwinkleSoft
-    }
+    val colours = subjectColours(lesson.subject)
     Column(
         Modifier
-            .width(150.dp)
-            .clip(RoundedCornerShape(22.dp))
-            .background(tint)
-            .clickable { onClick() }
-            .padding(16.dp),
+            .width(140.dp)
+            .clip(Radius.card)
+            .background(colours.soft)
+            .clickable(onClickLabel = lesson.title) { onClick() }
+            .padding(Space.md),
     ) {
-        EmojiArt(
-            lesson.gameType.emoji,
-            size = 40.dp,
-            modifier = Modifier.floaty(amplitude = 3.dp, phase = lesson.id.hashCode() % 7 * 0.9f),
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            lesson.gameType.title,
-            style = MaterialTheme.typography.titleSmall,
-            color = CatoPalette.Ink,
-            maxLines = 1,
-        )
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(84.dp)
+                .clip(Radius.control)
+                .background(Color.White.copy(alpha = 0.75f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            LessonCover(lesson, subjectColours(lesson.subject).deep, 64.dp)
+        }
+        Spacer(Modifier.height(Space.sm))
         Text(
             lesson.title,
-            style = MaterialTheme.typography.bodySmall,
-            color = CatoPalette.InkSoft,
+            style = MaterialTheme.typography.titleSmall,
+            color = CatoPalette.Ink,
             maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            minLines = 2,
         )
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(Space.xs))
         StarRow(stars, size = 16.dp, animate = false)
     }
 }

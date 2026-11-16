@@ -12,7 +12,7 @@ object CatoPalette {
     val CoralLight   = Color(0xFFF8B5A3)
     val CoralSoft    = Color(0xFFFEDDD4)
     val CoralTint    = Color(0xFFFDF2F0)
-    val CoralDeep    = Color(0xFFE3654A)
+    val CoralDeep    = Color(0xFFD4512F)   // white text passes 4:1 on this
 
     // Amber / gold — coins, rewards, "recommended"
     val Amber        = Color(0xFFF8B64C)
@@ -23,12 +23,12 @@ object CatoPalette {
     // Teal / mint
     val Teal         = Color(0xFF73DBD5)
     val TealSoft     = Color(0xFFDFF4F2)
-    val TealDeep     = Color(0xFF2FA9A2)
+    val TealDeep     = Color(0xFF15807A)
 
     // Periwinkle — teacher surfaces
     val Periwinkle   = Color(0xFF91B0FF)
     val PeriwinkleSoft = Color(0xFFE7EDFF)
-    val PeriwinkleDeep = Color(0xFF5578E0)
+    val PeriwinkleDeep = Color(0xFF4565CC)
 
     // Violet — school surfaces
     val Violet       = Color(0xFFA78BFA)
@@ -42,7 +42,7 @@ object CatoPalette {
     // Feedback
     val Success      = Color(0xFF04C051)
     val SuccessSoft  = Color(0xFFB0EF8F)
-    val SuccessDeep  = Color(0xFF009045)
+    val SuccessDeep  = Color(0xFF00803D)
     val Error        = Color(0xFFF44321)
     val ErrorSoft    = Color(0xFFFFDDD6)
 
