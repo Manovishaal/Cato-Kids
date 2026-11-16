@@ -17,7 +17,7 @@ import com.catokids.app.data.model.SubjectId.*
 internal object LkgCurriculum {
 
     /** Stroke-family order taken straight from the Written Level 2 workbook. */
-    private val WRITTEN_ORDER = listOf('L','I','T','J','F','V','W','X','Z','C','O','D','A','G','Q','E','N','M','H','U','Y','R','B','P','K','S')
+    private val WRITTEN_ORDER = listOf('L','I','T','J','F','V','W','X','Z','C','O','D','A','G','Q','E','N','M','H','U','Y','B','P','K','R','S')
 
     val letterLand: List<Lesson> = lessons(LETTER_LAND, LKG) {
 
@@ -45,20 +45,6 @@ internal object LkgCurriculum {
         }
 
         lesson(
-            id = "beginning_sounds", title = "Beginning sounds", subtitle = "What does it start with?",
-            description = "Listen to the word and pick the letter it starts with.",
-            game = GameType.LISTEN_PICK, intro = "Which letter does the word begin with?",
-            rounds = ALPHABET.filter { it.letter in listOf('S','M','T','P','B','N','R','D') }.map { li ->
-                val others = ALPHABET.filter { it.letter != li.letter }
-                    .shuffled(kotlin.random.Random(li.letter.code + 31L)).take(3)
-                pickRound("bs_${li.letter}", "${li.emoji}  ${li.word} starts with…",
-                    "${li.word} starts with…",
-                    li.letter.toString() to "", others.map { it.letter.toString() to "" },
-                    "${li.word} starts with ${li.letter}.")
-            },
-        )
-
-        lesson(
             id = "case_match", title = "Big and small letters", subtitle = "Find the partners",
             description = "Every capital letter has a lowercase partner.",
             game = GameType.MATCH_PAIRS, intro = "Match each big letter to its small letter.",
@@ -76,6 +62,20 @@ internal object LkgCurriculum {
             game = GameType.TAP_ALL, intro = "Tap all the vowels you can find.",
             rounds = listOf('A','E','I','O','U').mapIndexed { i, c ->
                 tapLetterRound("v_$c", c, "Tap all the letter $c", seed = 60 + i)
+            },
+        )
+
+        lesson(
+            id = "beginning_sounds", title = "Beginning sounds", subtitle = "What does it start with?",
+            description = "Listen to the word and pick the letter it starts with.",
+            game = GameType.LISTEN_PICK, intro = "Which letter does the word begin with?",
+            rounds = ALPHABET.filter { it.letter in listOf('S','M','T','P','B','N','R','D') }.map { li ->
+                val others = ALPHABET.filter { it.letter != li.letter }
+                    .shuffled(kotlin.random.Random(li.letter.code + 31L)).take(3)
+                pickRound("bs_${li.letter}", "${li.emoji}  ${li.word} starts with…",
+                    "${li.word} starts with…",
+                    li.letter.toString() to "", others.map { it.letter.toString() to "" },
+                    "${li.word} starts with ${li.letter}.")
             },
         )
 
@@ -117,6 +117,29 @@ internal object LkgCurriculum {
     val numberLand: List<Lesson> = lessons(NUMBER_LAND, LKG) {
 
         lesson(
+            id = "more_less", title = "More and less", subtitle = "Which group is bigger?",
+            description = "Compare two groups and choose the bigger one.",
+            game = GameType.QUIZ, intro = "Which side has more?",
+            rounds = listOf(
+                pickRound("ml1", "Which has MORE?", "Which has more?", "🍎🍎🍎🍎" to "", listOf("🍎🍎" to "", "🍎" to "", "🍎🍎🍎" to "")),
+                pickRound("ml2", "Which has LESS?", "Which has less?", "⭐" to "", listOf("⭐⭐⭐" to "", "⭐⭐⭐⭐⭐" to "", "⭐⭐" to "")),
+                pickRound("ml3", "Which has MORE?", "Which has more?", "🐟🐟🐟🐟🐟" to "", listOf("🐟🐟" to "", "🐟🐟🐟" to "", "🐟" to "")),
+            ),
+        )
+
+        lesson(
+            id = "shapes2", title = "More shapes", subtitle = "Rectangle, oval, diamond",
+            description = "Meet three more shapes and find them.",
+            game = GameType.SHAPE_HUNT, intro = "Tap the shape you hear.",
+            rounds = listOf(
+                pickRound("s1", "Tap the rectangle", "Rectangle", "Rectangle" to "▭", listOf("Square" to "🟥", "Circle" to "⚪", "Triangle" to "🔺")),
+                pickRound("s2", "Tap the diamond",   "Diamond",   "Diamond"   to "🔷", listOf("Circle" to "🔵", "Square" to "🟨", "Star" to "⭐")),
+                pickRound("s3", "Tap the heart",     "Heart",     "Heart"     to "❤️", listOf("Star" to "⭐", "Circle" to "🔵", "Triangle" to "🔺")),
+                pickRound("s4", "Tap the oval",      "Oval",      "Oval"      to "⬭", listOf("Square" to "🟩", "Diamond" to "🔷", "Star" to "🌟")),
+            ),
+        )
+
+        lesson(
             id = "write_1_10", title = "Write 1 to 10", subtitle = "Number writing",
             description = "Trace each number from one to ten.",
             game = GameType.TRACE, intro = "Trace the number, then say it out loud.",
@@ -147,29 +170,6 @@ internal object LkgCurriculum {
                 pickRound("ba2", "Which number comes before 7?", "Which number comes before seven?","6" to "", listOf("8" to "", "5" to "", "7" to "")),
                 pickRound("ba3", "Which number is between 2 and 4?", "Which number is between two and four?", "3" to "", listOf("1" to "", "5" to "", "6" to "")),
                 pickRound("ba4", "Which number comes after 9?",  "Which number comes after nine?",  "10" to "", listOf("8" to "", "11" to "", "7" to "")),
-            ),
-        )
-
-        lesson(
-            id = "more_less", title = "More and less", subtitle = "Which group is bigger?",
-            description = "Compare two groups and choose the bigger one.",
-            game = GameType.QUIZ, intro = "Which side has more?",
-            rounds = listOf(
-                pickRound("ml1", "Which has MORE?", "Which has more?", "🍎🍎🍎🍎" to "", listOf("🍎🍎" to "", "🍎" to "", "🍎🍎🍎" to "")),
-                pickRound("ml2", "Which has LESS?", "Which has less?", "⭐" to "", listOf("⭐⭐⭐" to "", "⭐⭐⭐⭐⭐" to "", "⭐⭐" to "")),
-                pickRound("ml3", "Which has MORE?", "Which has more?", "🐟🐟🐟🐟🐟" to "", listOf("🐟🐟" to "", "🐟🐟🐟" to "", "🐟" to "")),
-            ),
-        )
-
-        lesson(
-            id = "shapes2", title = "More shapes", subtitle = "Rectangle, oval, diamond",
-            description = "Meet three more shapes and find them.",
-            game = GameType.SHAPE_HUNT, intro = "Tap the shape you hear.",
-            rounds = listOf(
-                pickRound("s1", "Tap the rectangle", "Rectangle", "Rectangle" to "▭", listOf("Square" to "🟥", "Circle" to "⚪", "Triangle" to "🔺")),
-                pickRound("s2", "Tap the diamond",   "Diamond",   "Diamond"   to "🔷", listOf("Circle" to "🔵", "Square" to "🟨", "Star" to "⭐")),
-                pickRound("s3", "Tap the heart",     "Heart",     "Heart"     to "❤️", listOf("Star" to "⭐", "Circle" to "🔵", "Triangle" to "🔺")),
-                pickRound("s4", "Tap the oval",      "Oval",      "Oval"      to "⬭", listOf("Square" to "🟩", "Diamond" to "🔷", "Star" to "🌟")),
             ),
         )
 
@@ -214,6 +214,48 @@ internal object LkgCurriculum {
     val knowMyWorld: List<Lesson> = lessons(KNOW_MY_WORLD, LKG) {
 
         lesson(
+            id = "animal_homes", title = "Animal homes", subtitle = "Where do they live?",
+            description = "Match each animal to its home.",
+            game = GameType.MATCH_PAIRS, intro = "Match the animal to where it lives.",
+            rounds = listOf(
+                matchRound("ah1", "Match animal to home", listOf(
+                    MatchPair("Bird", "Nest",   "🐦"),
+                    MatchPair("Bee",  "Hive",   "🐝"),
+                    MatchPair("Dog",  "Kennel", "🐶"),
+                    MatchPair("Fish", "Water",  "🐟"),
+                )),
+            ),
+        )
+
+        lesson(
+            id = "helpers", title = "Community helpers", subtitle = "People who help us",
+            description = "Doctor, teacher, farmer, police officer and firefighter.",
+            game = GameType.LISTEN_PICK, intro = "Who helps us do this?",
+            rounds = listOf(
+                pickRound("h1", "Who helps us when we are sick?", "Who helps us when we are sick?", "Doctor" to "👩‍⚕️", listOf("Farmer" to "👨‍🌾", "Pilot" to "👨‍✈️", "Chef" to "👩‍🍳")),
+                pickRound("h2", "Who grows our food?",            "Who grows our food?",            "Farmer" to "👨‍🌾", listOf("Doctor" to "👩‍⚕️", "Teacher" to "👩‍🏫", "Police" to "👮")),
+                pickRound("h3", "Who puts out fires?",            "Who puts out fires?",            "Firefighter" to "👨‍🚒", listOf("Chef" to "👩‍🍳", "Farmer" to "👨‍🌾", "Doctor" to "👩‍⚕️")),
+                pickRound("h4", "Who teaches us at school?",      "Who teaches us at school?",      "Teacher" to "👩‍🏫", listOf("Pilot" to "👨‍✈️", "Police" to "👮", "Chef" to "👩‍🍳")),
+            ),
+        )
+
+        lesson(
+            id = "transport", title = "How we travel", subtitle = "Land, water and air",
+            description = "Sort vehicles by where they travel.",
+            game = GameType.SORT_BUCKETS, intro = "Where does each one go?",
+            rounds = listOf(
+                sortRound("t1", "Land, water or air?", listOf("Land", "Water", "Air"), listOf(
+                    BucketItem("Bus",       "🚌", "Land"),
+                    BucketItem("Boat",      "⛵", "Water"),
+                    BucketItem("Plane",     "✈️", "Air"),
+                    BucketItem("Car",       "🚗", "Land"),
+                    BucketItem("Ship",      "🚢", "Water"),
+                    BucketItem("Helicopter","🚁", "Air"),
+                )),
+            ),
+        )
+
+        lesson(
             id = "living", title = "Living and non-living", subtitle = "Alive or not?",
             description = "Living things grow, eat and move.",
             game = GameType.SORT_BUCKETS, intro = "Sort each picture into Living or Non-living.",
@@ -238,48 +280,6 @@ internal object LkgCurriculum {
                 pickRound("w2", "Tap the rainy day",  "Rainy",  "Rainy"  to "🌧️", listOf("Sunny" to "☀️", "Windy" to "🌬️", "Snowy" to "❄️")),
                 pickRound("w3", "Tap the snowy day",  "Snowy",  "Snowy"  to "❄️", listOf("Sunny" to "☀️", "Rainy" to "🌧️", "Cloudy" to "☁️")),
                 pickRound("w4", "What do we use in the rain?", "What do we use in the rain?", "Umbrella" to "☂️", listOf("Sunglasses" to "🕶️", "Fan" to "🪭", "Kite" to "🪁")),
-            ),
-        )
-
-        lesson(
-            id = "transport", title = "How we travel", subtitle = "Land, water and air",
-            description = "Sort vehicles by where they travel.",
-            game = GameType.SORT_BUCKETS, intro = "Where does each one go?",
-            rounds = listOf(
-                sortRound("t1", "Land, water or air?", listOf("Land", "Water", "Air"), listOf(
-                    BucketItem("Bus",       "🚌", "Land"),
-                    BucketItem("Boat",      "⛵", "Water"),
-                    BucketItem("Plane",     "✈️", "Air"),
-                    BucketItem("Car",       "🚗", "Land"),
-                    BucketItem("Ship",      "🚢", "Water"),
-                    BucketItem("Helicopter","🚁", "Air"),
-                )),
-            ),
-        )
-
-        lesson(
-            id = "helpers", title = "Community helpers", subtitle = "People who help us",
-            description = "Doctor, teacher, farmer, police officer and firefighter.",
-            game = GameType.LISTEN_PICK, intro = "Who helps us do this?",
-            rounds = listOf(
-                pickRound("h1", "Who helps us when we are sick?", "Who helps us when we are sick?", "Doctor" to "👩‍⚕️", listOf("Farmer" to "👨‍🌾", "Pilot" to "👨‍✈️", "Chef" to "👩‍🍳")),
-                pickRound("h2", "Who grows our food?",            "Who grows our food?",            "Farmer" to "👨‍🌾", listOf("Doctor" to "👩‍⚕️", "Teacher" to "👩‍🏫", "Police" to "👮")),
-                pickRound("h3", "Who puts out fires?",            "Who puts out fires?",            "Firefighter" to "👨‍🚒", listOf("Chef" to "👩‍🍳", "Farmer" to "👨‍🌾", "Doctor" to "👩‍⚕️")),
-                pickRound("h4", "Who teaches us at school?",      "Who teaches us at school?",      "Teacher" to "👩‍🏫", listOf("Pilot" to "👨‍✈️", "Police" to "👮", "Chef" to "👩‍🍳")),
-            ),
-        )
-
-        lesson(
-            id = "animal_homes", title = "Animal homes", subtitle = "Where do they live?",
-            description = "Match each animal to its home.",
-            game = GameType.MATCH_PAIRS, intro = "Match the animal to where it lives.",
-            rounds = listOf(
-                matchRound("ah1", "Match animal to home", listOf(
-                    MatchPair("Bird", "Nest",   "🐦"),
-                    MatchPair("Bee",  "Hive",   "🐝"),
-                    MatchPair("Dog",  "Kennel", "🐶"),
-                    MatchPair("Fish", "Water",  "🐟"),
-                )),
             ),
         )
 

@@ -41,6 +41,18 @@ class SoundEffects(context: Context) {
         buzz(80)
     }
 
+    /** Three quick rising notes — a happier "yes!" for the youngest children. */
+    fun chime() {
+        if (!enabled) return
+        buzz(30)
+        val notes = listOf(ToneGenerator.TONE_DTMF_1, ToneGenerator.TONE_DTMF_5, ToneGenerator.TONE_DTMF_9)
+        notes.forEachIndexed { i, note ->
+            handler.postDelayed({ play(note, 110) }, i * 120L)
+        }
+    }
+
+    private val handler = android.os.Handler(android.os.Looper.getMainLooper())
+
     fun tap() {
         play(ToneGenerator.TONE_PROP_BEEP, 70)
     }

@@ -17,6 +17,8 @@ data class StudentUiState(
     val summary: ProgressSummary = ProgressSummary(),
     val bySubject: Map<SubjectId, ProgressSummary> = emptyMap(),
     val loading: Boolean = true,
+    /** Explore (offline demo) mode — the only place a child may switch class themselves. */
+    val demo: Boolean = false,
 ) {
     val nextLesson: Lesson?
         get() {
@@ -24,9 +26,24 @@ data class StudentUiState(
             return CatoCurriculum.forGrade(grade).firstOrNull { it.id !in done }
         }
 
+    /** The most recently played lesson in this class that isn't finished yet. */
     val continueLesson: Lesson?
-        get() = progress.maxByOrNull { it.lastPlayedAtMillis }
-            ?.let { CatoCurriculum.lesson(it.lessonId) }
+        get() {
+            val mine = CatoCurriculum.forGrade(grade).map { it.id }.toSet()
+            return progress.filter { it.lessonId in mine && !it.completed }
+                .maxByOrNull { it.lastPlayedAtMillis }
+                ?.let { CatoCurriculum.lesson(it.lessonId) }
+        }
+
+    /**
+     * One unlock rule for everywhere a lesson can be opened: the first two lessons of a
+     * book are always open; after that a lesson opens once the one before it is done.
+     */
+    fun isLocked(lesson: Lesson): Boolean {
+        val book = CatoCurriculum.forGradeAndSubject(lesson.grade, lesson.subject)
+        val i = book.indexOfFirst { it.id == lesson.id }
+        return i > 1 && !isDone(lesson.id) && !isDone(book[i - 1].id)
+    }
 
     fun starsFor(lessonId: String): Int = progress.firstOrNull { it.lessonId == lessonId }?.stars ?: 0
     fun isDone(lessonId: String): Boolean = progress.any { it.lessonId == lessonId && it.completed }
@@ -39,13 +56,18 @@ class StudentViewModel(private val container: AppContainer) : ViewModel() {
 
     init {
         viewModelScope.launch {
+            container.auth.isDemo.collect { _state.value = _state.value.copy(demo = it) }
+        }
+        viewModelScope.launch {
             container.auth.profile.collect { profile ->
                 if (profile == null) {
                     _state.value = StudentUiState(loading = false)
                     return@collect
                 }
                 val grade = profile.grade ?: Grade.LKG
-                _state.value = _state.value.copy(profile = profile, grade = grade, loading = false)
+                _state.value = _state.value.copy(
+                    profile = profile, grade = grade, loading = false,
+                )
                 observeProgress(profile.id, grade)
             }
         }

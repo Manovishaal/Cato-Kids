@@ -345,7 +345,7 @@ private fun DomainLessonOverlay(
                 }
                 Column(Modifier.weight(1f).padding(start = 2.dp)) {
                     Text(domain.title, style = MaterialTheme.typography.titleLarge, color = CatoPalette.Ink, maxLines = 1)
-                    Text("${grade.emoji} ${grade.longLabel}", style = MaterialTheme.typography.bodySmall, color = CatoPalette.InkSoft)
+                    EmojiText("${grade.emoji} ${grade.longLabel}", style = MaterialTheme.typography.bodySmall, color = CatoPalette.InkSoft)
                 }
                 if (reviewed) {
                     Box(
@@ -679,7 +679,7 @@ private fun LibraryActivityRow(activity: LibraryActivity, onOpen: () -> Unit) {
                     .background(CatoPalette.AmberSoft)
                     .padding(horizontal = 8.dp, vertical = 4.dp),
             ) {
-                Text("🪙 ${activity.pointsReward}", style = MaterialTheme.typography.labelSmall, color = CatoPalette.Ink)
+                EmojiText("🪙 ${activity.pointsReward}", style = MaterialTheme.typography.labelSmall, color = CatoPalette.Ink)
             }
         }
     }

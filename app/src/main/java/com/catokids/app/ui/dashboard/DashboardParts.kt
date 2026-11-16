@@ -46,8 +46,11 @@ fun MetricCard(
         ) {
             EmojiArt(emoji, size = 26.dp)
             Spacer(Modifier.height(8.dp))
-            Text(value, style = MaterialTheme.typography.headlineMedium, color = CatoPalette.Ink)
-            Text(label, style = MaterialTheme.typography.labelSmall, color = CatoPalette.InkSoft)
+            Text(value, style = MaterialTheme.typography.headlineMedium, color = CatoPalette.Ink, maxLines = 1)
+            Text(
+                label, style = MaterialTheme.typography.labelSmall, color = CatoPalette.InkSoft,
+                maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            )
         }
     }
 }

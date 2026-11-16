@@ -18,7 +18,7 @@ the same structure as the printed books.
 
 | | |
 |---|---|
-| **74 lessons** | 9 book/level combinations, all bundled in the app |
+| **107 lessons** | 9 book/level combinations, all bundled in the app |
 | **9 game engines** | Trace, Find-them-all, Count-and-tap, Match pairs, Sort it out, Shape hunt, Listen-and-pick, Build the word, Quiz |
 | **5 roles** | Student, Teacher, Parent, Administrator, School — each with its own home |
 | **Real auth** | Supabase email + password, role stamped at signup, Row Level Security per role |
@@ -168,34 +168,38 @@ directly. Brand colours sampled from the tree live in `CatoPalette` as `BrandBlu
 
 ## Artwork
 
-Every picture in the app is a bundled image, not an emoji character. That is a
-correctness decision more than a cosmetic one: emoji render completely differently
-across Android versions and manufacturer skins, and on older devices some glyphs are a
-blank box. When the picture *is* the question — "which one starts with A?" — a child
-seeing a different apple, or no apple, is a broken lesson.
+No emoji font ever reaches a child's screen. Content still names its pictures with emoji
+code points (it keeps the curriculum readable), but every key resolves to real artwork,
+bundled for offline use. Emoji render differently on every device and are blank boxes on
+some older ones; when the picture *is* the question, that is a broken lesson.
 
-- **Set:** [Microsoft Fluent Emoji](https://github.com/microsoft/fluentui-emoji), 3D
-  style. **MIT licensed**, so commercial use needs no attribution and no share-alike.
-- **205 assets**, trimmed of transparent padding, 168px WebP at xxhdpi. 2.1 MB total —
-  about 5 KB each.
-- Rectangle, oval and pentagon are **drawn in-house** as vector drawables, because a
-  shapes lesson needs real geometry rather than whatever outline a font happens to ship.
+- **Illustrations (203):** human-made, free for commercial use, no watermarks.
+  - [Kenney](https://kenney.nl) kits, **CC0**. 3D models are rendered to pictures by
+    `tools/art/render_obj.py` (Kenney only ships 64px previews); the Animal Pack and
+    Board Game Icons come from Kenney's vector files.
+  - Individually picked public-domain clipart from [FreeSVG](https://freesvg.org) /
+    OpenClipart, **CC0**, only drawings published before 2022 (to avoid AI uploads).
+- **UI symbols (86):** Material icons (Apache 2.0), tinted per meaning.
+- **Shapes and clocks (23):** drawn in code by `DrawnArt`, so a "rectangle" is real geometry.
 
-Two composables in `ui/components/`, and nothing touches the drawables directly:
+`tools/art/build_art.py` rebuilds every picture (`res/drawable-nodpi/art_*.webp`, 320px,
+about 12 KB each), regenerates `ArtCatalog.kt` and fills in `tools/art/ART_MANIFEST.csv`
+(source, creator and licence per picture); `tools/art/notices.py` then rewrites the credits
+in `THIRD_PARTY_NOTICES.md`. `ArtCoverageTest` fails the build if any picture used in
+code or the curriculum has no artwork.
 
 | | |
 |---|---|
-| `EmojiArt(glyph, size)` | a standalone picture. Splits runs, so `"🍎🍎🍎"` lays out as three apples — exactly what the more-and-less questions need |
-| `EmojiText(text, style)` | a drop-in for `Text` that substitutes artwork **inline**, so `"🍎🍎🍎  How many apples?"` flows as one line. Placeholders are measured in `em`, so pictures track the font size for free |
+| `EmojiArt(key, size)` | a standalone picture. Splits runs, so `"🍎🍎🍎"` lays out as three apples |
+| `EmojiText(text, style)` | a drop-in for `Text` that puts pictures **inline**, sized in `em` |
+| `ArtPicture(key)` | one picture filling its bounds |
 
-`EmojiText` returns a plain `Text` when a string has nothing to substitute, so it is
-cheap enough to use as the default wherever content might contain a glyph. Anything
-unmapped — the `→` on a role card, a `✓` — falls back to text at the same visual size
-rather than vanishing. `EmojiArtwork.kt` is generated; don't hand-edit it.
+## Design system
 
-One curriculum change came out of this: the Parent role's glyph moved from 👨‍👩‍👧 to 🫂,
-because Fluent ships no family emoji and a single fallback glyph among 204 illustrations
-would have looked like a bug.
+`ui/theme/Tokens.kt` holds the shared measurements: a 4dp spacing grid (`Space`), four
+rounded corner sizes (`Radius`), touch targets of 56dp for controls and 72dp for game
+pieces (`Touch`). Type is **Nunito** (SIL OFL, bundled in `res/font`). Buttons and
+selected states use each role's *deep* colour so white text stays readable.
 
 ## Motion
 

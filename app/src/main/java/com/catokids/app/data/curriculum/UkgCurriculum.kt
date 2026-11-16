@@ -15,6 +15,20 @@ internal object UkgCurriculum {
     val letterLand: List<Lesson> = lessons(LETTER_LAND, UKG) {
 
         lesson(
+            id = "sight_words", title = "Sight words", subtitle = "Words we just know",
+            description = "The, and, is, you, my, we — read them without sounding out.",
+            game = GameType.LISTEN_PICK, intro = "Tap the word you hear.",
+            rounds = listOf(
+                pickRound("s1", "Tap the word: THE",  "The",  "the" to "", listOf("she" to "", "he" to "", "then" to "")),
+                pickRound("s2", "Tap the word: AND",  "And",  "and" to "", listOf("end" to "", "an" to "", "sand" to "")),
+                pickRound("s3", "Tap the word: YOU",  "You",  "you" to "", listOf("your" to "", "yes" to "", "yet" to "")),
+                pickRound("s4", "Tap the word: MY",   "My",   "my"  to "", listOf("me" to "", "may" to "", "many" to "")),
+                pickRound("s5", "Tap the word: WE",   "We",   "we"  to "", listOf("me" to "", "be" to "", "wet" to "")),
+                pickRound("s6", "Tap the word: IS",   "Is",   "is"  to "", listOf("it" to "", "in" to "", "if" to "")),
+            ),
+        )
+
+        lesson(
             id = "cvc_a", title = "Words with 'a'", subtitle = "cat · bat · map",
             description = "Short 'a' words — read them and build them.",
             game = GameType.JUMBLED_WORD, intro = "Drag the letters into the right order.",
@@ -54,16 +68,16 @@ internal object UkgCurriculum {
         )
 
         lesson(
-            id = "sight_words", title = "Sight words", subtitle = "Words we just know",
-            description = "The, and, is, you, my, we — read them without sounding out.",
-            game = GameType.LISTEN_PICK, intro = "Tap the word you hear.",
+            id = "write_words", title = "Write the word", subtitle = "Careful handwriting",
+            description = "Trace whole words letter by letter.",
+            game = GameType.TRACE, intro = "Trace each letter to write the word.",
             rounds = listOf(
-                pickRound("s1", "Tap the word: THE",  "The",  "the" to "", listOf("she" to "", "he" to "", "then" to "")),
-                pickRound("s2", "Tap the word: AND",  "And",  "and" to "", listOf("end" to "", "an" to "", "sand" to "")),
-                pickRound("s3", "Tap the word: YOU",  "You",  "you" to "", listOf("your" to "", "yes" to "", "yet" to "")),
-                pickRound("s4", "Tap the word: MY",   "My",   "my"  to "", listOf("me" to "", "may" to "", "many" to "")),
-                pickRound("s5", "Tap the word: WE",   "We",   "we"  to "", listOf("me" to "", "be" to "", "wet" to "")),
-                pickRound("s6", "Tap the word: IS",   "Is",   "is"  to "", listOf("it" to "", "in" to "", "if" to "")),
+                traceRound("t1", "C", "cat", "cat", "🐱"),
+                traceRound("t2", "a", "cat", "cat", "🐱"),
+                traceRound("t3", "t", "cat", "cat", "🐱"),
+                traceRound("t4", "S", "sun", "sun", "☀️"),
+                traceRound("t5", "u", "sun", "sun", "☀️"),
+                traceRound("t6", "n", "sun", "sun", "☀️"),
             ),
         )
 
@@ -88,20 +102,6 @@ internal object UkgCurriculum {
                 pickRound("b2", "🪑  Chair starts with…", "Chair starts with", "ch" to "", listOf("sh" to "", "th" to "", "c" to "")),
                 pickRound("b3", "👍  Thumb starts with…", "Thumb starts with", "th" to "", listOf("t" to "", "sh" to "", "ch" to "")),
                 pickRound("b4", "🐑  Sheep starts with…", "Sheep starts with", "sh" to "", listOf("s" to "", "ch" to "", "th" to "")),
-            ),
-        )
-
-        lesson(
-            id = "write_words", title = "Write the word", subtitle = "Careful handwriting",
-            description = "Trace whole words letter by letter.",
-            game = GameType.TRACE, intro = "Trace each letter to write the word.",
-            rounds = listOf(
-                traceRound("t1", "C", "cat", "cat", "🐱"),
-                traceRound("t2", "a", "cat", "cat", "🐱"),
-                traceRound("t3", "t", "cat", "cat", "🐱"),
-                traceRound("t4", "S", "sun", "sun", "☀️"),
-                traceRound("t5", "u", "sun", "sun", "☀️"),
-                traceRound("t6", "n", "sun", "sun", "☀️"),
             ),
         )
 
@@ -136,6 +136,13 @@ internal object UkgCurriculum {
         )
 
         lesson(
+            id = "write_teens", title = "Write 11 to 20", subtitle = "Two-digit numbers",
+            description = "Trace the teen numbers.",
+            game = GameType.TRACE, intro = "Trace both digits.",
+            rounds = (11..20).map { n -> traceRound("n$n", n.toString(), "Number $n", n.toString(), "🔢") },
+        )
+
+        lesson(
             id = "addition", title = "Addition", subtitle = "Adding to 20",
             description = "Add two numbers together.",
             game = GameType.QUIZ, intro = "Work it out, then tap your answer.",
@@ -161,18 +168,6 @@ internal object UkgCurriculum {
         )
 
         lesson(
-            id = "skip", title = "Skip counting", subtitle = "2s, 5s and 10s",
-            description = "Count in jumps.",
-            game = GameType.QUIZ, intro = "What comes next in the jump?",
-            rounds = listOf(
-                pickRound("k1", "2, 4, 6, 8, ❓",     "Two four six eight",      "10" to "", listOf("9" to "", "11" to "", "12" to ""), "We are counting in 2s."),
-                pickRound("k2", "5, 10, 15, ❓",      "Five ten fifteen",        "20" to "", listOf("16" to "", "25" to "", "18" to "")),
-                pickRound("k3", "10, 20, 30, ❓",     "Ten twenty thirty",       "40" to "", listOf("31" to "", "35" to "", "50" to "")),
-                pickRound("k4", "1, 3, 5, 7, ❓",     "One three five seven",    "9"  to "", listOf("8" to "", "10" to "", "11" to "")),
-            ),
-        )
-
-        lesson(
             id = "shapes3", title = "Shapes and sides", subtitle = "Counting sides",
             description = "How many sides and corners does each shape have?",
             game = GameType.QUIZ, intro = "Count the sides carefully.",
@@ -181,6 +176,18 @@ internal object UkgCurriculum {
                 pickRound("s2", "🟥  How many sides?",  "How many sides does a square have?",   "4" to "", listOf("3" to "", "5" to "", "6" to "")),
                 pickRound("s3", "⚪  How many corners?", "How many corners does a circle have?", "0" to "", listOf("1" to "", "2" to "", "4" to ""), "A circle has no corners."),
                 pickRound("s4", "⬟  How many sides?",   "How many sides does a pentagon have?", "5" to "", listOf("4" to "", "6" to "", "3" to "")),
+            ),
+        )
+
+        lesson(
+            id = "skip", title = "Skip counting", subtitle = "2s, 5s and 10s",
+            description = "Count in jumps.",
+            game = GameType.QUIZ, intro = "What comes next in the jump?",
+            rounds = listOf(
+                pickRound("k1", "2, 4, 6, 8, ❓",     "Two four six eight",      "10" to "", listOf("9" to "", "11" to "", "12" to ""), "We are counting in 2s."),
+                pickRound("k2", "5, 10, 15, ❓",      "Five ten fifteen",        "20" to "", listOf("16" to "", "25" to "", "18" to "")),
+                pickRound("k3", "10, 20, 30, ❓",     "Ten twenty thirty",       "40" to "", listOf("31" to "", "35" to "", "50" to "")),
+                pickRound("k4", "1, 3, 5, 7, ❓",     "One three five seven",    "9"  to "", listOf("8" to "", "10" to "", "11" to "")),
             ),
         )
 
@@ -194,13 +201,6 @@ internal object UkgCurriculum {
                 pickRound("t3", "How many hours in a day?", "How many hours in a day?", "24" to "", listOf("12" to "", "30" to "", "7" to "")),
                 pickRound("t4", "How many days in a week?", "How many days in a week?", "7" to "", listOf("5" to "", "12" to "", "30" to "")),
             ),
-        )
-
-        lesson(
-            id = "write_teens", title = "Write 11 to 20", subtitle = "Two-digit numbers",
-            description = "Trace the teen numbers.",
-            game = GameType.TRACE, intro = "Trace both digits.",
-            rounds = (11..20).map { n -> traceRound("n$n", n.toString(), "Number $n", n.toString(), "🔢") },
         )
 
         lesson(
@@ -254,22 +254,6 @@ internal object UkgCurriculum {
         )
 
         lesson(
-            id = "senses", title = "My five senses", subtitle = "See, hear, smell, taste, touch",
-            description = "Which sense do we use?",
-            game = GameType.SORT_BUCKETS, intro = "Sort each one under the right sense.",
-            rounds = listOf(
-                sortRound("s1", "Which sense?", listOf("See", "Hear", "Taste"), listOf(
-                    BucketItem("Rainbow", "🌈", "See"),
-                    BucketItem("Drum",    "🥁", "Hear"),
-                    BucketItem("Lemon",   "🍋", "Taste"),
-                    BucketItem("Star",    "⭐", "See"),
-                    BucketItem("Bell",    "🔔", "Hear"),
-                    BucketItem("Honey",   "🍯", "Taste"),
-                )),
-            ),
-        )
-
-        lesson(
             id = "good_habits", title = "Good habits", subtitle = "Staying healthy and safe",
             description = "Choices that keep us well.",
             game = GameType.SORT_BUCKETS, intro = "Is it a good habit or not?",
@@ -286,6 +270,18 @@ internal object UkgCurriculum {
         )
 
         lesson(
+            id = "safety", title = "Safety first", subtitle = "Rules that keep us safe",
+            description = "Road safety and safe choices.",
+            game = GameType.QUIZ, intro = "What is the safe thing to do?",
+            rounds = listOf(
+                pickRound("s1", "🚦  What does red mean?",   "What does the red light mean?", "Stop" to "🛑", listOf("Go" to "✅", "Run" to "🏃", "Wait a bit" to "⏳"), "Red means stop."),
+                pickRound("s2", "🚦  What does green mean?", "What does the green light mean?", "Go" to "✅", listOf("Stop" to "🛑", "Sleep" to "😴", "Sit" to "🪑")),
+                pickRound("s3", "Where do we cross the road?", "Where do we cross the road?", "Zebra crossing" to "🦓", listOf("Anywhere" to "❓", "On a bend" to "↩️", "Between cars" to "🚗")),
+                pickRound("s4", "Who should we hold hands with on the road?", "Who should we hold hands with?", "A grown-up" to "🧑", listOf("Nobody" to "🙅", "A cat" to "🐱", "A toy" to "🧸")),
+            ),
+        )
+
+        lesson(
             id = "earth", title = "Our Earth", subtitle = "Land, water and sky",
             description = "Air, water, land and how we care for them.",
             game = GameType.LISTEN_PICK, intro = "Tap the right picture.",
@@ -298,14 +294,18 @@ internal object UkgCurriculum {
         )
 
         lesson(
-            id = "safety", title = "Safety first", subtitle = "Rules that keep us safe",
-            description = "Road safety and safe choices.",
-            game = GameType.QUIZ, intro = "What is the safe thing to do?",
+            id = "senses", title = "My five senses", subtitle = "See, hear, smell, taste, touch",
+            description = "Which sense do we use?",
+            game = GameType.SORT_BUCKETS, intro = "Sort each one under the right sense.",
             rounds = listOf(
-                pickRound("s1", "🚦  What does red mean?",   "What does the red light mean?", "Stop" to "🛑", listOf("Go" to "✅", "Run" to "🏃", "Wait a bit" to "⏳"), "Red means stop."),
-                pickRound("s2", "🚦  What does green mean?", "What does the green light mean?", "Go" to "✅", listOf("Stop" to "🛑", "Sleep" to "😴", "Sit" to "🪑")),
-                pickRound("s3", "Where do we cross the road?", "Where do we cross the road?", "Zebra crossing" to "🦓", listOf("Anywhere" to "❓", "On a bend" to "↩️", "Between cars" to "🚗")),
-                pickRound("s4", "Who should we hold hands with on the road?", "Who should we hold hands with?", "A grown-up" to "🧑", listOf("Nobody" to "🙅", "A cat" to "🐱", "A toy" to "🧸")),
+                sortRound("s1", "Which sense?", listOf("See", "Hear", "Taste"), listOf(
+                    BucketItem("Rainbow", "🌈", "See"),
+                    BucketItem("Drum",    "🥁", "Hear"),
+                    BucketItem("Lemon",   "🍋", "Taste"),
+                    BucketItem("Star",    "⭐", "See"),
+                    BucketItem("Bell",    "🔔", "Hear"),
+                    BucketItem("Honey",   "🍯", "Taste"),
+                )),
             ),
         )
 

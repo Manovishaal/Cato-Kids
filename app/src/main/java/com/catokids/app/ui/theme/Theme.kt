@@ -29,7 +29,7 @@ data class RoleColors(
 fun roleColorsFor(role: Role?): RoleColors = when (role) {
     Role.TEACHER -> RoleColors(CatoPalette.Periwinkle, CatoPalette.PeriwinkleSoft, CatoPalette.PeriwinkleDeep)
     Role.PARENT  -> RoleColors(CatoPalette.Teal,       CatoPalette.TealSoft,       CatoPalette.TealDeep)
-    Role.ADMIN   -> RoleColors(CatoPalette.Amber,      CatoPalette.AmberSoft,      Color(0xFFC98615))
+    Role.ADMIN   -> RoleColors(CatoPalette.Amber,      CatoPalette.AmberSoft,      Color(0xFF9A6206))
     Role.SCHOOL  -> RoleColors(CatoPalette.Violet,     CatoPalette.VioletSoft,     CatoPalette.VioletDeep)
     else         -> RoleColors(CatoPalette.Coral,      CatoPalette.CoralTint,      CatoPalette.CoralDeep)
 }

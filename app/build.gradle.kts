@@ -90,6 +90,8 @@ dependencies {
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)
     implementation(libs.compose.material.icons)
+    implementation(libs.lottie.compose)   // Pre-KG cartoon animations (Apache 2.0)
+    implementation(libs.sceneview)        // Pre-KG 3D games: Filament + glTF (Apache 2.0)
     debugImplementation(libs.compose.ui.tooling)
     debugImplementation(libs.compose.ui.test.manifest)
 

@@ -35,11 +35,16 @@ import kotlinx.coroutines.delay
 // ------------------------------------------------------------------ splash
 
 @Composable
-fun SplashScreen(onFinished: () -> Unit) {
+fun SplashScreen(ready: Boolean = true, onFinished: () -> Unit) {
     val scale = remember { Animatable(0.6f) }
     LaunchedEffect(Unit) {
-        scale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
-        delay(700)
+        scale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium))
+    }
+    // Leave as soon as the saved session is read, with a short minimum so the logo
+    // registers — rather than always playing a fixed sequence after everything is ready.
+    LaunchedEffect(ready) {
+        if (!ready) return@LaunchedEffect
+        delay(650)
         onFinished()
     }
 
@@ -179,7 +184,7 @@ private fun RoleCard(role: Role, onClick: () -> Unit) {
                     .size(34.dp)
                     .pulse(maxScale = 1.10f, periodMillis = 1600)
                     .clip(CircleShape)
-                    .background(colors.primary),
+                    .background(colors.deep),
                 contentAlignment = Alignment.Center,
             ) {
                 Text("→", color = Color.White, style = MaterialTheme.typography.titleMedium)
@@ -210,6 +215,7 @@ fun LoginScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
         ) {
+            Spacer(Modifier.height(28.dp))
             CatoTopBar(title = "Sign in", subtitle = "${role.emoji}  ${role.label}", onBack = onBack)
             Spacer(Modifier.height(4.dp))
 
@@ -255,7 +261,7 @@ fun LoginScreen(
 
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     TextButton(onClick = onForgot) {
-                        Text("Forgot password?", color = colors.primary, style = MaterialTheme.typography.labelMedium)
+                        Text("Forgot password?", color = colors.deep, style = MaterialTheme.typography.labelMedium)
                     }
                 }
 
@@ -264,7 +270,7 @@ fun LoginScreen(
                     leading = "🚀",
                     onClick = { onSignIn(email, password) },
                     loading = state.loading,
-                    color = colors.primary,
+                    color = colors.deep,
                     emphasise = email.isNotBlank() && password.isNotBlank(),
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -272,17 +278,18 @@ fun LoginScreen(
                 CatoOutlineButton(
                     text = "Create a new account",
                     onClick = onRegister,
-                    color = colors.primary,
+                    color = colors.deep,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(Modifier.height(18.dp))
-                TextButton(onClick = onExplore, modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        "or explore offline as ${role.label.lowercase()}",
-                        color = CatoPalette.InkSoft,
-                        style = MaterialTheme.typography.labelMedium,
-                    )
-                }
+                // Explore is how most families first meet the app, so it is a real button.
+                CatoOutlineButton(
+                    text = "Explore without an account",
+                    leading = "🗺️",
+                    onClick = onExplore,
+                    color = CatoPalette.Ink,
+                    modifier = Modifier.fillMaxWidth(),
+                )
                 Spacer(Modifier.height(28.dp))
             }
         }
@@ -312,6 +319,7 @@ fun RegisterScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
         ) {
+            Spacer(Modifier.height(28.dp))
             CatoTopBar(title = "Create account", subtitle = "${role.emoji}  ${role.label}", onBack = onBack)
 
             Column(Modifier.padding(horizontal = 22.dp)) {
@@ -343,7 +351,7 @@ fun RegisterScreen(
                             GradeChip(
                                 grade = g,
                                 selected = grade == g,
-                                color = colors.primary,
+                                color = colors.deep,
                                 modifier = Modifier.weight(1f),
                                 onClick = { grade = g },
                             )
@@ -369,7 +377,7 @@ fun RegisterScreen(
                     leading = "✨",
                     onClick = { onRegister(name, email, password, confirm, grade, phone) },
                     loading = state.loading,
-                    color = colors.primary,
+                    color = colors.deep,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(Modifier.height(10.dp))
@@ -425,6 +433,7 @@ fun ForgotPasswordScreen(
 
     CatoBackdrop {
         Column(Modifier.fillMaxSize()) {
+            Spacer(Modifier.height(28.dp))
             CatoTopBar(title = "Reset password", onBack = onBack)
             Column(Modifier.padding(22.dp)) {
                 GooseCharacter(modifier = Modifier.size(104.dp))

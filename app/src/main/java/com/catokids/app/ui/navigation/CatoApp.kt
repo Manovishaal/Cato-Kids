@@ -24,6 +24,7 @@ import com.catokids.app.data.curriculum.CatoCurriculum
 import com.catokids.app.data.model.AssignmentSubmission
 import com.catokids.app.data.model.CUSTOM_GAME_LESSON_PREFIX
 import com.catokids.app.data.model.Grade
+import kotlinx.coroutines.flow.first
 import com.catokids.app.data.model.Role
 import com.catokids.app.data.model.SubjectId
 import com.catokids.app.data.model.TapEffectType
@@ -42,8 +43,17 @@ import com.catokids.app.ui.student.*
 import kotlinx.coroutines.launch
 
 @Composable
-fun CatoApp(container: AppContainer) {
+fun CatoApp(container: AppContainer, debugOpenLesson: String? = null) {
     val nav = rememberNavController()
+    // Debug-only shortcut (see MainActivity): open one lesson once the app is ready.
+    if (debugOpenLesson != null) {
+        androidx.compose.runtime.LaunchedEffect(debugOpenLesson) {
+            // Wait for the student home, however long the splash takes, then open the lesson.
+            nav.currentBackStackEntryFlow.first { it.destination.route == Routes.STUDENT_HOME }
+            kotlinx.coroutines.delay(400)
+            runCatching { nav.navigate(Routes.lesson(debugOpenLesson)) }
+        }
+    }
     val authVm: AuthViewModel = viewModel(factory = AuthViewModel.factory(container))
     val authState by authVm.state.collectAsState()
     val isDemo by container.auth.isDemo.collectAsState()
@@ -56,8 +66,12 @@ fun CatoApp(container: AppContainer) {
 
     val soundOn by container.preferences.soundOn.collectAsState(initial = true)
     LaunchedEffect(soundOn) {
+        // Let the first frame (the splash) draw before the speech engine binds its service.
+        androidx.compose.runtime.withFrameNanos { }
         container.speech.setEnabled(soundOn)
-        container.sounds.setEnabled(soundOn)
+        // Usually already built in the background by AppContainer.warmUp().
+        val sounds = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { container.sounds }
+        sounds.setEnabled(soundOn)
     }
 
     // Route to the right home whenever the signed-in role changes.
@@ -116,7 +130,7 @@ fun CatoApp(container: AppContainer) {
         ) {
 
             composable(Routes.SPLASH) {
-                SplashScreen(onFinished = {
+                SplashScreen(ready = authState.restored, onFinished = {
                     val profile = authState.profile
                     val target = when (profile?.role) {
                         Role.STUDENT -> Routes.STUDENT_HOME
@@ -136,7 +150,7 @@ fun CatoApp(container: AppContainer) {
                 RoleSelectScreen(
                     backendConfigured = authVm.backendConfigured,
                     onPick = { role -> authVm.clearMessages(); nav.navigate(Routes.login(role.wire)) },
-                    onExplore = { role -> authVm.exploreOffline(role, Grade.LKG) },
+                    onExplore = { role -> authVm.exploreOffline(role, if (role == Role.STUDENT) Grade.PREKG else Grade.LKG) },
                 )
             }
 
@@ -152,7 +166,7 @@ fun CatoApp(container: AppContainer) {
                     onRegister = { authVm.clearMessages(); nav.navigate(Routes.register(role.wire)) },
                     onForgot = { authVm.clearMessages(); nav.navigate(Routes.FORGOT) },
                     onBack = { nav.popBackStack() },
-                    onExplore = { authVm.exploreOffline(role, if (role == Role.STUDENT) Grade.LKG else null) },
+                    onExplore = { authVm.exploreOffline(role, if (role == Role.STUDENT) Grade.PREKG else null) },
                 )
             }
 
@@ -238,7 +252,7 @@ fun CatoApp(container: AppContainer) {
                 LaunchedEffect(s.finished) {
                     if (s.finished) {
                         nav.navigate(
-                            Routes.result(lessonId, s.score, s.correct, s.totalRounds, s.stars, s.elapsedSeconds)
+                            Routes.result(lessonId, s.score, if (s.lesson?.grade == Grade.PREKG) s.firstTry else s.correct, s.totalRounds, s.stars, s.elapsedSeconds)
                         ) { popUpTo(Routes.LESSON) { inclusive = true } }
                     }
                 }
@@ -251,6 +265,8 @@ fun CatoApp(container: AppContainer) {
                     onSpeak = vm::speakCurrentPrompt,
                     onTap = vm::tapSound,
                     onExit = { nav.popBackStack() },
+                    onSay = { vm.speak(it) },
+                    onMiss = vm::miss,
                 )
             }
 
@@ -280,6 +296,8 @@ fun CatoApp(container: AppContainer) {
                         }
                     },
                     onKeepLearning = { nav.navigateTop(Routes.STUDENT_HOME) },
+                    crafts = CatoCurriculum.lesson(lessonId)?.content?.crafts.orEmpty(),
+                    playful = CatoCurriculum.lesson(lessonId)?.grade == com.catokids.app.data.model.Grade.PREKG,
                 )
             }
 

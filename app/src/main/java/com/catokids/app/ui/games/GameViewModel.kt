@@ -26,13 +26,29 @@ data class GameUiState(
     val explanation: String? = null,
     val finished: Boolean = false,
     val startedAtMillis: Long = System.currentTimeMillis(),
+    /** Toy games let a child keep trying; these count the tries for grown-ups' reports. */
+    val misses: Int = 0,
+    val roundMisses: Int = 0,
+    val firstTry: Int = 0,
 ) {
     val round: GameRound? get() = lesson?.content?.rounds?.getOrNull(roundIndex)
     val totalRounds: Int get() = lesson?.content?.rounds?.size ?: 0
     val progress: Float get() = if (totalRounds == 0) 0f else roundIndex.toFloat() / totalRounds
-    val score: Int get() = if (totalRounds == 0) 0 else (correct * 100) / totalRounds
+    private val toy: Boolean get() = lesson?.grade == com.catokids.app.data.model.Grade.PREKG
+    /**
+     * Pre-KG toys always finish with the right answer, so their score counts the wrong tries
+     * on the way; reports also get "right first time" through [firstTry].
+     */
+    val score: Int get() = when {
+        totalRounds == 0 -> 0
+        // Each wrong try costs a quarter of a round, and a round never drops below half:
+        // a 3-year-old who slips once and then gets it still did well.
+        toy -> (totalRounds * 4 - misses.coerceAtMost(totalRounds * 2)) * 25 / totalRounds
+        else -> correct * 100 / totalRounds
+    }
     val stars: Int get() = when {
         totalRounds == 0 -> 0
+        toy && score < 40 -> 1           // a little one always earns a star for finishing
         score >= 90 -> 3
         score >= 70 -> 2
         score >= 40 -> 1
@@ -71,7 +87,11 @@ class GameViewModel(
 
     fun speakCurrentPrompt() {
         val s = _state.value
-        val text = s.round?.speak ?: s.round?.prompt ?: s.lesson?.content?.speak
+        val lesson = s.lesson; val round = s.round
+        // Pre-KG toys say their own tiny line ("Feed me A!") — never the lesson's long prompt.
+        val text = if (lesson != null && round != null && lesson.grade == com.catokids.app.data.model.Grade.PREKG)
+            toySpeech(lesson, round)
+        else round?.speak ?: round?.prompt ?: lesson?.content?.speak
         container.speech.speak(text)
     }
 
@@ -81,14 +101,29 @@ class GameViewModel(
     fun submit(isCorrect: Boolean) {
         val s = _state.value
         if (s.feedback != Feedback.NONE) return
-        if (isCorrect) container.sounds.correct() else container.sounds.wrong()
+        // Pre-KG gets a rising chime and a cheer that changes each time, so praise
+        // stays fresh for the youngest children; older grades keep the plain beep.
+        val playful = s.lesson?.grade == com.catokids.app.data.model.Grade.PREKG
+        when {
+            isCorrect && playful -> container.sounds.chime()
+            isCorrect            -> container.sounds.correct()
+            else                 -> container.sounds.wrong()
+        }
         _state.value = s.copy(
             correct = s.correct + if (isCorrect) 1 else 0,
             wrong = s.wrong + if (isCorrect) 0 else 1,
+            firstTry = s.firstTry + if (isCorrect && s.roundMisses == 0) 1 else 0,
             feedback = if (isCorrect) Feedback.CORRECT else Feedback.WRONG,
             explanation = s.round?.explanation,
         )
-        container.speech.speak(if (isCorrect) "Well done!" else "Not quite. Try the next one.")
+        container.speech.speak(
+            when {
+                isCorrect && playful -> PRAISE[(s.correct + s.roundIndex) % PRAISE.size]
+                isCorrect            -> "Well done!"
+                playful              -> "Oops! Try again!"
+                else                 -> "Not quite. Try the next one."
+            }
+        )
     }
 
     fun next() {
@@ -99,9 +134,15 @@ class GameViewModel(
             container.sounds.celebrate()
             persist()
         } else {
-            _state.value = s.copy(roundIndex = s.roundIndex + 1, feedback = Feedback.NONE, explanation = null)
+            _state.value = s.copy(roundIndex = s.roundIndex + 1, feedback = Feedback.NONE, explanation = null, roundMisses = 0)
             speakCurrentPrompt()
         }
+    }
+
+    /** A toy game's wrong move: no buzzer, no score change for the child — just counted. */
+    fun miss() {
+        val s = _state.value
+        _state.value = s.copy(misses = s.misses + 1, roundMisses = s.roundMisses + 1)
     }
 
     fun retryRound() {
@@ -124,7 +165,8 @@ class GameViewModel(
                 lessonId = lesson.id,
                 stars = s.stars,
                 score = s.score,
-                correct = s.correct,
+                // For toys this is "rounds right first time", so reports see real wrong tries.
+                correct = if (s.lesson?.grade == com.catokids.app.data.model.Grade.PREKG) s.firstTry else s.correct,
                 total = s.totalRounds,
                 seconds = s.elapsedSeconds,
             )
@@ -146,3 +188,6 @@ class GameViewModel(
         }
     }
 }
+
+/** Pre-KG cheers, rotated so the same words do not repeat round after round. */
+private val PRAISE = listOf("Yay!", "Good job!", "Super!", "Wow!", "Hooray!")
